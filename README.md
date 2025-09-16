@@ -5,31 +5,18 @@
 ## Repository
 
 ```bash
-BerNet
-| > docs/
-|   - Documentation files.
-|
-| > experiments/
-|   - Configurations, scripts, and logs for running and reproducing experiments.
-|
-| > notebooks/
-|   - Jupyter notebooks for exploratory analysis.
-|
-| > src/
-│   └── bernet/
-|       - Core source code of BerNet.
-|
-| > tests/
-|   - Unit and integration tests to ensure correctness of the codebase.
-|
-| > tutorials/
-|   - Step-by-step guides and example workflows for new users.
-|
-| > LICENSE
-|
-| > README.md
-|
-| >  requirements.txt
+|- .vscode/: Hidden documents inside vscode.
+|- docs/: Documentation files.
+|- experiments/: Configurations, scripts, and logs for running and reproducing experiments.
+|- notebooks/: Jupyter notebooks for exploratory analysis.
+|- src/bernet/: Source code of BerNet.
+|- tests/: Unit and integration tests to ensure correctness of the codebase.
+|- tutorials/: Step-by-step guides and example workflows for new users.
+|- .gitignore
+|- LICENSE
+|- pyptoject.toml
+|- README.md
+|- requirements.txt
 ```
 
 ## 👩‍💻 Contributing to BerNet
