@@ -1,0 +1,8 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Ignore build/packaging artifacts
+*.egg-info/
+*.egg

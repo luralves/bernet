@@ -1,0 +1,31 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bernet"
+version = "0.1.0"
+description = "BerNet: A Bernstein polynomial-inspired PINN toolkit"
+authors = [{ name="Lucas Ribeiro Alves", email="lucas.ra.mast@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.urls]
+homepage = "https://github.com/luralves/bernet"
+repository = "https://github.com/luralves/bernet"
+issues = "https://github.com/luralves/bernet/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
