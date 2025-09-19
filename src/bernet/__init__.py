@@ -1,1 +1,1 @@
-from bernet import abstract
+from bernet import contracts

@@ -4,7 +4,7 @@ import pytest
 import torch
 
 from typing import Mapping, Optional, Tuple
-from bernet.abstract import BASELoss
+from bernet.contracts import BASELoss
 
 #####################################################################################
 class TinyModel(torch.nn.Module):
