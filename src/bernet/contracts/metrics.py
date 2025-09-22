@@ -18,7 +18,7 @@ class MetricsBASE(ABC):
         self,
         model: torch.nn.Module,
         data: Mapping[str, torch.Tensor],
-        ) -> Mapping[str, torch.Tensor]:
+        ) -> Mapping[str, float]:
         """
         Return the metrics computed based on sampler data.
 

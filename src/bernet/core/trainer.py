@@ -85,6 +85,7 @@ class Trainer():
     def fit(
         self,
         num_epochs: int,
+        verbose: bool  = True,
         ) -> None:
         """
         Perform training.
@@ -93,6 +94,8 @@ class Trainer():
         ----------
         - num_epochs: int
           > Number of epochs to train the model for.
+        - verbose: bool
+          > Show training progress
         """
 
         #-- Callback
@@ -103,7 +106,9 @@ class Trainer():
         if self._logger is not None:
             self._logger.start()
         
-        try:
+        # try:
+
+        if True:
 
             #-- Loop through epochs
             for epoch in range(num_epochs):
@@ -125,7 +130,7 @@ class Trainer():
 
                     #-- Sample batch
                     batch = self._sampler.batch()
-                    batch = {k: v.to(self._device) for k, v in batch.items()}
+                    batch = {k: {l: w.to(self._device) for l, w in v.items()} for k, v in batch.items()}
                     
                     #-- Zero gradients
                     self._optimizer.zero_grad(set_to_none=True)
@@ -146,7 +151,7 @@ class Trainer():
                     #-- Callback
                     if self._callback:
                         self._callback.on_batch_end()
-                
+                    
                 #-- Compute metrics
                 if self._metrics is not None:
                     metrics = self._metrics(
@@ -160,7 +165,7 @@ class Trainer():
                 if self._logger is not None:
                     avg_loss = loss_epoch / self._sampler.num_batches
                     avg_terms = {k: v / self._sampler.num_batches for k, v in terms_epoch.items()}
-                    self._logger.epoch(epoch=epoch, loss=avg_loss, terms=avg_terms, metrics=metrics)
+                    self._logger.epoch(epoch=epoch, total_loss=avg_loss, loss_terms=avg_terms, metrics=metrics)
 
                 #-- Early stopping
                 if self._early_stopping:
@@ -180,26 +185,44 @@ class Trainer():
                             self._logger.stopped()
                         break
                 
+                #-- Show progress
+                if verbose:
+                    print(f"Epoch {epoch + 1}/{num_epochs} - Resultados:")
+                    print(f" > Total loss: {avg_loss:.4e}")
+                    
+                    print(" > Loss terms:")
+                    for k, v in avg_terms.items():
+                        print(f"    - {k}: {v:.4e}")
+                    
+                    if metrics is not None:
+                        print(" > Metrics:")
+                        for k, v in avg_terms.items():
+                            print(f"    - {k}: {v:.4e}")
+                
                 #-- Callback
                 if self._callback:
                     self._callback.on_epoch_end()
 
-        except BaseException as e:
-            #-- Callback
-            if self._callback:
-                self._callback.on_exception(e)
+        # except BaseException as e:
+        #     #-- Callback
+        #     if self._callback:
+        #         self._callback.on_exception(e)
 
-            #-- Log exception
-            if self._logger is not None:
-                self._logger.exception(e)
+        #     #-- Log exception
+        #     if self._logger is not None:
+        #         self._logger.exception(e)
 
-        finally:
-            #-- Callback
-            if self._callback:
-                self._callback.on_train_end()
+        #     #-- Show error
+        #     if verbose:
+        #         print(f"Error: {e}")
 
-            #-- Log close
-            if self._logger is not None:
-                self._logger.close()
+        # finally:
+        #     #-- Callback
+        #     if self._callback:
+        #         self._callback.on_train_end()
+
+        #     #-- Log close
+        #     if self._logger is not None:
+        #         self._logger.close()
         
         return

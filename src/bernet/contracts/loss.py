@@ -113,9 +113,9 @@ class LossBASE(ABC):
         
         #-- Compute loss components
         loss_rs = self._residual(model=model, batch=batch["residual"])
-        loss_bc = self._residual(model=model, batch=batch["boundary"])
-        loss_ic = self._residual(model=model, batch=batch["initial"])
-        loss_dt = self._residual(model=model, batch=batch["data"])
+        loss_bc = self._boundary(model=model, batch=batch["boundary"])
+        loss_ic = self._initial(model=model, batch=batch.get("initial", None))
+        loss_dt = self._data(model=model, batch=batch["data"])
 
         #-- Validate loss components
         device = next(model.parameters()).device

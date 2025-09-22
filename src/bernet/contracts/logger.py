@@ -11,7 +11,7 @@ class LoggerBASE(ABC):
     > Necessary parameters:
     - data: Mapping[str, list[float]]
     """
-    data: Mapping[str, list[float]]
+    data: Mapping[str, list[float]] = {}
 
 
     def start(self) -> None:
@@ -26,7 +26,7 @@ class LoggerBASE(ABC):
         total_loss: float,
         loss_terms: Mapping[str, float],
         metrics: Optional[Mapping[str, float]],
-    ) -> None:
+        ) -> None:
         """
         Called at the end of each epoch.
         """
