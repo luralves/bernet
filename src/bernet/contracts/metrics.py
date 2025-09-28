@@ -5,34 +5,32 @@ from abc import ABC, abstractmethod
 from typing import Mapping
 
 #####################################################################################
-class MetricsBASE(ABC):
+class IMetrics(ABC):
     """
-    Compute metrics based on sampler data.
-
-    > Necessary methods:
-    - metrics(model, data) -> Mapping[str, torch.Tensor]
+    Compute metrics based on sampled data.
     """
 
     @abstractmethod
-    def __call__(
-        self,
-        model: torch.nn.Module,
-        data: Mapping[str, torch.Tensor],
+    def evaluate(
+            self,
+            model: torch.nn.Module,
+            data: Mapping[str, torch.Tensor],
         ) -> Mapping[str, float]:
         """
-        Return the metrics computed based on sampler data.
+        Compute metrics.
 
-        Parameters:
+        Parameters
         ----------
-        - model: torch.nn.Module
-          > The model to evaluate.
-        - data: Mapping[str, torch.Tensor]
-          > The data to evaluate on.
-
-        Returns:
+        model : torch.nn.Module
+            PyTorch Module.
+        batch : Mapping[str, torch.Tensor]
+            Data for loss computation containing "x" and "y_ref"
+            as parameters.
+        
+        Returns
         -------
-        - Mapping[str, torch.Tensor]
-          > The computed metrics.
+        Mapping[str, float]
+            Dictionary structured data.
         """
         ...
     

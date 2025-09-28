@@ -1,56 +1,74 @@
 #####################################################################################
-from abc import ABC
+from abc import ABC, abstractmethod
 
 #####################################################################################
-class CallbackBASE(ABC):
+class ICallbacks(ABC):
     """
-    Optional callback hooks that are called during the training process.
-    Override only what you need.
+    Callbacks that are called during the training process.
     """
-    def on_train_start(self) -> None:
+
+    @abstractmethod
+    def train_start(self) -> None:
         """
         Called when training starts.
         """
         ...
 
-    def on_epoch_start(self) -> None:
+    @abstractmethod
+    def epoch_start(self) -> None:
         """
         Called at the start of each epoch.
         """
         ...
 
-    def on_batch_start(self) -> None:
+    @abstractmethod
+    def batch_start(self) -> None:
         """
         Called at the start of each batch.
         """
         ...
 
-    def on_batch_end(self) -> None:
+    @abstractmethod
+    def batch_end(self) -> None:
         """
         Called at the end of each batch.
         """
         ...
 
-    def on_epoch_end(self) -> None:
+    @abstractmethod
+    def epoch_end(self) -> None:
         """
         Called at the end of each epoch.
         """
         ...
 
-    def on_exception(self, e: BaseException) -> None:
+    @abstractmethod
+    def exception(
+            self,
+            e: BaseException,
+        ) -> None:
         """
         Called when an exception occurs during training.
 
-        Parameters:
+        Parameters
         ----------
-        - e: BaseException
-          > The exception that was raised.
+        e : BaseException
+            The exception that was raised.
         """
         ...
 
-    def on_train_end(self) -> None:
+    @abstractmethod
+    def train_end(
+            self,
+            stopped: bool,
+        ) -> None:
         """
         Called when training ends.
+
+        Parameters
+        ----------
+        stopped : bool
+            True if stopped by EarlyStop
         """
         ...
 

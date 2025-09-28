@@ -1,134 +1,260 @@
 #####################################################################################
+from __future__ import annotations
+
 import torch
 
-from typing import Mapping, Tuple
-from abc import ABC
+from typing import Mapping, Optional, List
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
-from bernet.utils import Validation
+from bernet.contracts.sampler import Batch
 
 #####################################################################################
-class LossBASE(ABC):
-    """
-    Compute the loss based on sampler data.
+#-- Auxiliary class
+@dataclass
+class Losses():
+    residual: torch.Tensor | float
+    boundary: Optional[torch.Tensor | float]
+    initial: Optional[torch.Tensor | float]
+    observational: Optional[torch.Tensor | float]
 
-    There is a loss term for each type of data:
-    - Residual points: _residual(model, batch) -> Tensor
-    - Boundary points: _boundary(model, batch) -> Tensor
-    - Initial points: _initial(model, batch) -> Tensor
-    - Data points: _data(model, batch) -> Tensor
-
-    The user must implement only the necessary internal methods.
-    """
-
-    def _residual(
-            self,
-            model: torch.Tensor,
-            batch: Mapping[str, torch.Tensor]
-            ) -> torch.Tensor:
+    def sum(self) -> torch.Tensor | float:
         """
-        Compute the residual loss.
-
-        Parameters:
-        ----------
-        - model: torch.Tensor
-          > The model to evaluate.
-        - batch: Mapping[str, torch.Tensor]
-          > The data batch.
-        """
-        ...
-    
-    def _boundary(
-            self,
-            model: torch.Tensor,
-            batch: Mapping[str, torch.Tensor]
-            ) -> torch.Tensor:
-        """
-        Compute the boundary condition loss.
-
-        Parameters:
-        ----------
-        - model: torch.Tensor
-          > The model to evaluate.
-        - batch: Mapping[str, torch.Tensor]
-          > The data batch.
-        """
-        ...
-    
-    def _initial(
-            self,
-            model: torch.Tensor,
-            batch: Mapping[str, torch.Tensor]
-            ) -> torch.Tensor:
-        """
-        Compute the initial condition loss.
-
-        Parameters:
-        ----------
-        - model: torch.Tensor
-          > The model to evaluate.
-        - batch: Mapping[str, torch.Tensor]
-          > The data batch.
-        """
-        ...
-    
-    def _data(
-            self,
-            model: torch.Tensor,
-            batch: Mapping[str, torch.Tensor]
-            ) -> torch.Tensor:
-        """
-        Compute the data loss.
-
-        Parameters:
-        ----------
-        - model: torch.Tensor
-          > The model to evaluate.
-        - batch: Mapping[str, torch.Tensor]
-          > The data batch.
-        """
-        ...
-    
-    def __call__(
-            self,
-            model: torch.nn.Module,
-            batch: Mapping[str, torch.Tensor]
-            ) -> Tuple[torch.Tensor, Mapping[str, torch.Tensor]]:
-        """
-        Compute the loss.
-
-        Parameters
-        ----------
-        - model: nn.Module
-          > Neural network model.
-        - batch: Mapping[str, Mapping[str, Tensor]]
-          > Batch for each term in the loss function.
+        Compute total loss.
 
         Returns
         -------
-        - loss: Tensor
-          > Scalar loss value.
-        - terms: Optional[Mapping[str, Tensor]]
-          > Optional dictionary of per-term losses for logging.
+        torch.Tensor
+            Sum of all loss terms.
         """
+
+        #-- Initiate with the only required parameter
+        loss = self.residual
+
+        #-- Add optional parameters
+        if self.boundary is not None:
+            loss += self.boundary
         
-        #-- Compute loss components
-        loss_rs = self._residual(model=model, batch=batch["residual"])
-        loss_bc = self._boundary(model=model, batch=batch["boundary"])
-        loss_ic = self._initial(model=model, batch=batch.get("initial", None))
-        loss_dt = self._data(model=model, batch=batch["data"])
+        if self.initial is not None:
+            loss += self.initial
+        
+        if self.observational is not None:
+            loss += self.observational
 
-        #-- Validate loss components
-        device = next(model.parameters()).device
+        return loss
+    
+    def to_float(self) -> Losses:
+        """
+        Convert Tensor to float.
 
-        loss_rs = Validation.loss(x=loss_rs, device=device)
-        loss_bc = Validation.loss(x=loss_bc, device=device)
-        loss_ic = Validation.loss(x=loss_ic, device=device)
-        loss_dt = Validation.loss(x=loss_dt, device=device)
+        Returns
+        -------
+        Terms
+            Terms with data in float format.
+        """
+        return Losses(
+            residual=self.residual.item(),
+            boundary=self.boundary.item() if self.boundary is not None else None,
+            initial=self.initial.item() if self.initial is not None else None,
+            observational=self.observational.item() if self.observational is not None else None,
+        )
 
-        #-- Compute total loss
-        loss = loss_rs + loss_bc + loss_ic + loss_dt
+    def to_list(self) -> List[float]:
+        """
+        Convert the terms to a list.
 
-        #-- Loss componentes
-        terms = {"residual": loss_rs, "boundary": loss_bc, "initial": loss_ic, "data": loss_dt,}
+        Returns
+        -------
+        List[float]
+            List with loss terms.
+        """
 
-        return loss, terms
+        #-- Initiate with the only required parameter
+        out = [self.residual]
+
+        #-- Add optional parameters
+        if self.boundary is not None:
+            out.append(self.boundary)
+        else:
+            out.append(.0)
+        
+        if self.initial is not None:
+            out.append(self.initial)
+        else:
+            out.append(.0)
+        
+        if self.observational is not None:
+            out.append(self.observational)
+        else:
+            out.append(.0)
+
+        return out
+    
+    #-- Override
+    def __add__(
+            self,
+            other: Losses,
+        ) -> Losses:
+        """
+        Override the __add__ method.
+        """
+        return Losses(
+            residual=self.residual + other.residual,
+            boundary=self.boundary + other.boundary if (self.boundary is not None) and (other.boundary is not None) else None,
+            initial=self.initial + other.initial if (self.initial is not None) and (other.initial is not None) else None,
+            observational=self.observational + other.observational if (self.observational is not None) and (other.observational is not None) else None,
+        )
+    
+    #-- Override
+    def __truediv__(self, value: float) -> Losses:
+        """
+        Override the __truediv__ method.
+        Terms can only be divided by a float value.
+        """
+        if not isinstance(value, float):
+            raise "Terms __truediv__ error: not isinstance(value, float)"
+        
+        return Losses(
+            residual=self.residual / value,
+            boundary=self.boundary / value if self.boundary is not None else None,
+            initial=self.initial / value if self.initial is not None else None,
+            observational=self.observational / value if self.observational is not None else None,
+        )
+
+#-- Main class
+class ILoss(ABC):
+    """
+    Compute loss terms based on sampled data.
+    """
+
+    @abstractmethod
+    def residual(
+            self,
+            model: torch.nn.Module,
+            batch: Mapping[str, torch.Tensor]
+        ) -> torch.Tensor:
+        """
+        Compute residual loss.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            PyTorch Module.
+        batch : Mapping[str, torch.Tensor]
+            Data for loss computation.
+        
+        Returns
+        -------
+        torch.Tensor
+            Tensor loss.
+        """
+        ...
+    
+    @abstractmethod
+    def boundary(
+            self,
+            model: torch.nn.Module,
+            batch: Mapping[str, torch.Tensor]
+        ) -> torch.Tensor:
+        """
+        Compute residual loss.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            PyTorch Module.
+        batch : Mapping[str, torch.Tensor]
+            Data for loss computation.
+        
+        Returns
+        -------
+        torch.Tensor
+            Tensor loss.
+        """
+        ...
+
+    @abstractmethod
+    def initial(
+            self,
+            model: torch.nn.Module,
+            batch: Mapping[str, torch.Tensor]
+        ) -> torch.Tensor:
+        """
+        Compute initial loss.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            PyTorch Module.
+        batch : Mapping[str, torch.Tensor]
+            Data for loss computation.
+        
+        Returns
+        -------
+        torch.Tensor
+            Tensor loss.
+        """
+        ...
+    
+    @abstractmethod
+    def observational(
+            self,
+            model: torch.nn.Module,
+            batch: Mapping[str, torch.Tensor]
+        ) -> torch.Tensor:
+        """
+        Compute initial loss.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            PyTorch Module.
+        batch : Mapping[str, torch.Tensor]
+            Data for loss computation.
+        
+        Returns
+        -------
+        torch.Tensor
+            Tensor loss.
+        """
+        ...
+
+
+    def compute(
+            self,
+            model: torch.nn.Module,
+            batch: Batch,
+        ) -> Losses:
+        """
+        Return loss terms
+        """
+
+        #-- Required loss    
+        loss_r = self.residual(model=model, batch=batch.residual)
+
+        #-- Optional losses
+        if batch.boundary is not None:
+            loss_b = self.boundary(model=model, batch=batch.boundary)
+        else:
+            loss_b = None
+        
+        if batch.initial is not None:
+            loss_i = self.initial(model=model, batch=batch.initial)
+        else:
+            loss_i = None
+        
+        if batch.observational is not None:
+            loss_o = self.observational(model=model, batch=batch.observational)
+        else:
+            loss_o = None
+
+        #-- Create output
+        losses = Losses(
+            residual=loss_r,
+            boundary=loss_b,
+            initial=loss_i,
+            observational=loss_o,
+        )
+
+        return losses
+

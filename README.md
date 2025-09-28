@@ -5,18 +5,16 @@
 ## Repository
 
 ```bash
-|- .vscode/: Hidden documents inside vscode.
-|- docs/: Documentation files.
-|- experiments/: Configurations, scripts, and logs for running and reproducing experiments.
-|- notebooks/: Jupyter notebooks for exploratory analysis.
-|- src/bernet/: Source code of BerNet.
-|- tests/: Unit and integration tests to ensure correctness of the codebase.
-|- tutorials/: Step-by-step guides and example workflows for new users.
-|- .gitignore
-|- LICENSE
-|- pyptoject.toml
-|- README.md
-|- requirements.txt
+BerNet/
+├── docs/            # Documentation files
+├── experiments/     # Scripts for running experiments.
+├── notebooks/       # Exploratory analysis
+├── src/bernet       # Source code
+│   ├── contracts/   # - Interfaces
+│   ├── core/        # - Interfaces implementation
+│   └── utils/       # - Utilities
+├── tests/           # Implementation tests
+└── tutorials/       # Example workflows for new users.
 ```
 
 ## 👩‍💻 Contributing to BerNet
@@ -137,3 +135,4 @@ git push origin feature/my-feature
 2. GitHub will suggest opening a PR for your branch.
 3. Provide a clear description of your changes.
 4. Submit the PR and request a review.
+

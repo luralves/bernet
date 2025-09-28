@@ -1,23 +1,35 @@
 #####################################################################################
-from typing import Mapping
+from typing import Mapping, Optional
 from abc import ABC, abstractmethod
 
-#####################################################################################
-class EarlyStopBASE(ABC):
-    """
-    Provides early stopping functionality for the Trainer.
+from bernet.contracts.loss import Losses
 
-    > Necessary methods:
-    - __call__() -> bool
+#####################################################################################
+class IEarlyStop(ABC):
+    """
+    Provides early stopping functionality during training.
     """
 
     @abstractmethod
-    def __call__(
-        self,
-        data: Mapping[str, float],
+    def evaluate(
+            self,
+            losses: Losses,
+            metrics: Optional[Mapping[str, float]]
         ) -> bool:
         """
-        Check if early stopping criteria are met.
+        Evaluate if training should stops.
+
+        Parameters
+        ----------
+        losses : Losses
+            Dataclass with residual, boundary, initial and observational loss.
+        metrics : Mapping[str, float]
+            Dictionary with metrics data.
+        
+        Returns
+        -------
+        bool
+            Return True if training should stop.
         """
         ...
     

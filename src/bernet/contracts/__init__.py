@@ -1,6 +1,6 @@
-from bernet.contracts.callbacks import CallbackBASE
-from bernet.contracts.logger import LoggerBASE
-from bernet.contracts.loss import LossBASE
-from bernet.contracts.metrics import MetricsBASE
-from bernet.contracts.sampler import SamplerBASE
-from bernet.contracts.early_stop import EarlyStopBASE
+from bernet.contracts.sampler import ISampler, Batch
+from bernet.contracts.loss import ILoss, Losses
+from bernet.contracts.metrics import IMetrics
+from bernet.contracts.callbacks import ICallbacks
+from bernet.contracts.logger import ILogger
+from bernet.contracts.early_stop import IEarlyStop

@@ -1,0 +1,1 @@
+from bernet.core.sampler.sampler_1D import HypercubeSampler

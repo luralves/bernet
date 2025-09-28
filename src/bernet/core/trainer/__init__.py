@@ -1,0 +1,1 @@
+from bernet.core.trainer.default_trainer import DFLTTrainer

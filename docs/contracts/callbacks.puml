@@ -1,0 +1,34 @@
+@startuml callbacks
+' === Clean modern look ===
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #2563EB
+skinparam roundCorner 15
+skinparam shadowing false
+
+' Hide empty members
+hide empty members
+
+' Hide circle
+hide circle
+
+' Remove circles
+skinparam CircledCharacterRadius 10
+
+' Remove markers from parameters and methods
+skinparam classAttributeIconSize 0
+
+' ===== Diagram content =====
+class ICallbacks {
+    **  abstract**
+    --
+    + ** train_start()**: None
+    + ** epoch_start()**: None
+    + ** batch_start()**: None
+    + ** batch_end()**: None
+    + ** epoch_end()**: None
+    + ** exception(**error: BaseException**)**: None
+    + ** train_end(**stopped: bool**)**: None
+}
+
+@enduml
