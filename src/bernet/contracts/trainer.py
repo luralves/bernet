@@ -2,17 +2,17 @@
 import torch
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 
-from bernet.contracts.sampler import ISampler
-from bernet.contracts.loss import ILoss
-from bernet.contracts.metrics import IMetrics
-from bernet.contracts.callbacks import ICallbacks
-from bernet.contracts.logger import ILogger
-from bernet.contracts.early_stop import IEarlyStop
+from bernet.contracts.sampler import SamplerABC
+from bernet.contracts.loss import LossABC
+from bernet.contracts.metrics import MetricsABC
+from bernet.contracts.callbacks import CallbacksABC
+from bernet.contracts.logger import LoggerABC
+from bernet.contracts.early_stop import EarlyStopABC
 
 #####################################################################################
-class ITrainer(ABC):
+class TrainerABC(ABC):
     """
     Trainer class for training neural networks.
     """
@@ -20,13 +20,13 @@ class ITrainer(ABC):
     def __init__(
             self,
             model: torch.nn.Module,
-            sampler: ISampler,
-            loss: ILoss,
+            sampler: SamplerABC,
+            loss: LossABC,
             optimizer: torch.optim.Optimizer,
-            metrics: Optional[IMetrics] = None,
-            callbacks: Optional[ICallbacks] = None,
-            logger: Optional[ILogger] = None,
-            early_stop: Optional[IEarlyStop] = None,
+            metrics: Optional[List[MetricsABC]] = None,
+            callbacks: Optional[CallbacksABC] = None,
+            logger: Optional[LoggerABC] = None,
+            early_stop: Optional[EarlyStopABC] = None,
             device: Optional[str | torch.device] = "cpu",
         ) -> None:
         """

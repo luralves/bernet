@@ -8,7 +8,7 @@ from dataclasses import dataclass
 #####################################################################################
 #-- Auxiliary class
 @dataclass
-class Batch():
+class BatchSample():
     """
     Batch data for loss computation.
     """
@@ -46,7 +46,7 @@ class Batch():
         return
 
 #-- Main class
-class ISampler(ABC):
+class SamplerABC(ABC):
     """
     Provides data for training and validating.
     """
@@ -68,7 +68,7 @@ class ISampler(ABC):
     def batch(
             self,
             index: int,
-        ) -> Batch:
+        ) -> BatchSample:
         """
         Receives the batch index and returns the batch with
         trianing parameters.

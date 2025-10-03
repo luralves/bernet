@@ -1,13 +1,13 @@
 #####################################################################################
 import torch
 
-from typing import Mapping
+from typing import Mapping, List
 from abc import ABC, abstractmethod
 
-from bernet.contracts.loss import Losses
+from bernet.contracts.loss import BatchLoss
 
 #####################################################################################
-class ILogger(ABC):
+class LoggerABC(ABC):
     """
     Stores a summary about the model and training data.
     """
@@ -31,8 +31,8 @@ class ILogger(ABC):
     @abstractmethod
     def epoch_end(
             self,
-            losses: Losses,
-            metrics: Mapping[str, float],
+            losses: BatchLoss,
+            metrics: List[float],
         ) -> None:
         """
         Called at the end of each epoch.

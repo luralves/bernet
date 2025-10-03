@@ -1,11 +1,11 @@
 #####################################################################################
-from typing import Mapping, Optional
+from typing import List, Optional
 from abc import ABC, abstractmethod
 
-from bernet.contracts.loss import Losses
+from bernet.contracts.loss import BatchLoss
 
 #####################################################################################
-class IEarlyStop(ABC):
+class EarlyStopABC(ABC):
     """
     Provides early stopping functionality during training.
     """
@@ -13,8 +13,8 @@ class IEarlyStop(ABC):
     @abstractmethod
     def evaluate(
             self,
-            losses: Losses,
-            metrics: Optional[Mapping[str, float]]
+            losses: BatchLoss,
+            metrics: Optional[List[float]]
         ) -> bool:
         """
         Evaluate if training should stops.

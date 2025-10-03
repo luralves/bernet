@@ -1,1 +1,1 @@
-from bernet.core.logger.default_logger import DFLTLogger
+from bernet.core.logger.default_logger import DefaultLogger

@@ -3,7 +3,7 @@ from typing import Dict, List
 import math
 
 #####################################################################################
-def dflt_load_logger_data(
+def load_default_logger_data(
         filename: str,
     ) -> Dict[str, List[float]]:
     """
@@ -22,8 +22,8 @@ def dflt_load_logger_data(
     Dict[str, List[float]]
         Dictionary with column names as keys and lists of floats as values.
     """
-    BEGIN_MARKER = "<<<BEGIN_TRAIN_DATA>>>"
-    END_MARKER = "<<<END_TRAIN_DATA>>>"
+    BEGIN_MARKER = "## BEGIN TRAIN DATA"
+    END_MARKER = "## END TRAIN DATA"
     col_width = 16
 
     with open(filename, "r", encoding="utf-8") as f:

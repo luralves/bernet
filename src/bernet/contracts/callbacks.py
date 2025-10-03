@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 
 #####################################################################################
-class ICallbacks(ABC):
+class CallbacksABC(ABC):
     """
     Callbacks that are called during the training process.
     """

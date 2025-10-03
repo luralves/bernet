@@ -7,12 +7,13 @@ from typing import Mapping, Optional, List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from bernet.contracts.sampler import Batch
+from bernet.contracts.sampler import BatchSample
+from bernet.utils.validation import TypeCheck
 
 #####################################################################################
 #-- Auxiliary class
 @dataclass
-class Losses():
+class BatchLoss():
     residual: torch.Tensor | float
     boundary: Optional[torch.Tensor | float]
     initial: Optional[torch.Tensor | float]
@@ -24,16 +25,19 @@ class Losses():
 
         Returns
         -------
-        torch.Tensor
+        torch.Tensor | float
             Sum of all loss terms.
         """
 
         #-- Initiate with the only required parameter
-        loss = self.residual
-
+        if isinstance(self.residual, torch.Tensor):
+            loss = self.residual.clone()
+        else:
+            loss = float(self.residual)
+        
         #-- Add optional parameters
         if self.boundary is not None:
-            loss += self.boundary
+            loss = loss + self.boundary
         
         if self.initial is not None:
             loss += self.initial
@@ -43,23 +47,23 @@ class Losses():
 
         return loss
     
-    def to_float(self) -> Losses:
+    def to_float(self) -> BatchLoss:
         """
         Convert Tensor to float.
 
         Returns
         -------
-        Terms
+        Losses
             Terms with data in float format.
         """
-        return Losses(
+        return BatchLoss(
             residual=self.residual.item(),
-            boundary=self.boundary.item() if self.boundary is not None else None,
-            initial=self.initial.item() if self.initial is not None else None,
-            observational=self.observational.item() if self.observational is not None else None,
+            boundary=self.boundary.item() if self.boundary is not None else 0.0,
+            initial=self.initial.item() if self.initial is not None else 0.0,
+            observational=self.observational.item() if self.observational is not None else 0.0,
         )
 
-    def to_list(self) -> List[float]:
+    def to_list(self) -> List[torch.Tensor | float]:
         """
         Convert the terms to a list.
 
@@ -93,36 +97,34 @@ class Losses():
     #-- Override
     def __add__(
             self,
-            other: Losses,
-        ) -> Losses:
+            other: BatchLoss,
+        ) -> BatchLoss:
         """
         Override the __add__ method.
         """
-        return Losses(
+        return BatchLoss(
             residual=self.residual + other.residual,
-            boundary=self.boundary + other.boundary if (self.boundary is not None) and (other.boundary is not None) else None,
-            initial=self.initial + other.initial if (self.initial is not None) and (other.initial is not None) else None,
-            observational=self.observational + other.observational if (self.observational is not None) and (other.observational is not None) else None,
+            boundary=self.boundary + other.boundary if (self.boundary is not None) and (other.boundary is not None) else 0.0,
+            initial=self.initial + other.initial if (self.initial is not None) and (other.initial is not None) else 0.0,
+            observational=self.observational + other.observational if (self.observational is not None) and (other.observational is not None) else 0.0,
         )
     
     #-- Override
-    def __truediv__(self, value: float) -> Losses:
+    def __truediv__(self, value: float) -> BatchLoss:
         """
         Override the __truediv__ method.
         Terms can only be divided by a float value.
         """
-        if not isinstance(value, float):
-            raise "Terms __truediv__ error: not isinstance(value, float)"
-        
-        return Losses(
+        TypeCheck.number(value)
+        return BatchLoss(
             residual=self.residual / value,
-            boundary=self.boundary / value if self.boundary is not None else None,
-            initial=self.initial / value if self.initial is not None else None,
-            observational=self.observational / value if self.observational is not None else None,
+            boundary=self.boundary / value if self.boundary is not None else 0.0,
+            initial=self.initial / value if self.initial is not None else 0.0,
+            observational=self.observational / value if self.observational is not None else 0.0,
         )
 
 #-- Main class
-class ILoss(ABC):
+class LossABC(ABC):
     """
     Compute loss terms based on sampled data.
     """
@@ -223,8 +225,8 @@ class ILoss(ABC):
     def compute(
             self,
             model: torch.nn.Module,
-            batch: Batch,
-        ) -> Losses:
+            batch: BatchSample,
+        ) -> BatchLoss:
         """
         Return loss terms
         """
@@ -249,7 +251,7 @@ class ILoss(ABC):
             loss_o = None
 
         #-- Create output
-        losses = Losses(
+        losses = BatchLoss(
             residual=loss_r,
             boundary=loss_b,
             initial=loss_i,

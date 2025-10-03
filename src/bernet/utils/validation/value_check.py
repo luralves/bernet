@@ -1,17 +1,13 @@
 #####################################################################################
-from typing import Mapping
-
-from bernet.contracts import IMetrics
+from typing import Any, Iterable
 
 #####################################################################################
-class DFLTMetrics(IMetrics):
-    
-    def evaluate(self, model, data) -> Mapping[str, float]:
-        super().evaluate(model, data)
+class ValueCheck():
 
-        #-- Compute L1 norm
-        l1_norm = 
-
+    @staticmethod
+    def on_iterable(x: Any, values: Iterable) -> None:
+        if x not in values:
+            raise ValueError(f"ValueError: {x} must be one of {values}")
         return
 
 #####################################################################################

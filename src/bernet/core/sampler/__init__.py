@@ -1,1 +1,1 @@
-from bernet.core.sampler.sampler_1D import HypercubeSampler
+from bernet.core.sampler.square_sampler import SQUARESampler

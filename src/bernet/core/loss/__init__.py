@@ -1,1 +1,1 @@
-from bernet.core.loss.default_loss import DFLTLoss
+from bernet.core.loss.residual_loss_base import ResidualLossBase

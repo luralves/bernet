@@ -4,13 +4,13 @@ import os
 import json
 import math
 
-from typing import Mapping, Any, Dict, List
+from typing import Mapping, Any, List
 
-from bernet.contracts.logger import ILogger
-from bernet.contracts.loss import Losses
+from bernet.contracts.logger import LoggerABC
+from bernet.contracts.loss import BatchLoss
 
 #####################################################################################
-class DFLTLogger(ILogger):
+class DefaultLogger(LoggerABC):
     """
     Default Logger class.
     """
@@ -23,12 +23,12 @@ class DFLTLogger(ILogger):
 
         return
     
-    def on_train_start(
+    def train_start(
             self,
             model: torch.nn.Module,
             optimizer: torch.optim.Optimizer,
         ) -> None:
-        super().on_train_start(model, optimizer)
+        super().train_start(model, optimizer)
 
         # Model info
         self.log['model_class'] = model.__class__.__name__
@@ -44,22 +44,23 @@ class DFLTLogger(ILogger):
 
         return
     
-    def on_epoch_end(
+    def epoch_end(
             self,
-            losses: Losses,
+            losses: BatchLoss,
             metrics: Mapping[str, float],
         ) -> None:
-        super().on_epoch_end(terms, metrics)
+        super().epoch_end(losses, metrics)
 
         #-- Create trianing data
         if not ("train_data" in self.log):
-            self.log["train_data"] = {"loss": [], "residual": [], "boundary": [], "initial": [], "observational": []}
+            self.log["train_data"] = {"iteration": [], "loss": [], "residual": [], "boundary": [], "initial": [], "observational": []}
             
             if metrics:
                 for k, v in metrics.items():
                     self.log["train_data"][k] = []
         
         #-- Add data
+        self.log["train_data"]["iteration"].append(len(self.log["train_data"]["iteration"]) + 1)
         self.log["train_data"]["loss"].append(losses.sum())
         self.log["train_data"]["residual"].append(losses.residual)
         self.log["train_data"]["boundary"].append(losses.boundary)
@@ -72,14 +73,14 @@ class DFLTLogger(ILogger):
 
         return
     
-    def on_exception(self, e) -> None:
-        super().on_exception(e)
+    def exception(self, e) -> None:
+        super().exception(e)
         #-- Add exception
         self.log["exception"] = str(e)
         return
     
-    def on_training_end(self, stopped: bool) -> None:
-        super().on_training_end(stopped)
+    def training_end(self, stopped: bool) -> None:
+        super().training_end(stopped)
         #-- Add training end
         self.log["stopped"] = stopped
         return
@@ -92,8 +93,8 @@ class DFLTLogger(ILogger):
         COL_WIDTH = 16
         #-  Digits after decimal, e.g. 1.234567e+03
         PRECISION = 6
-        BEGIN_MARKER = "<<<BEGIN_TRAIN_DATA>>>"
-        END_MARKER = "<<<END_TRAIN_DATA>>>"
+        BEGIN_MARKER = "## BEGIN TRAIN DATA"
+        END_MARKER = "## END TRAIN DATA"
 
         #-- Ensure .log extension
         if not filename.lower().endswith(".log"):

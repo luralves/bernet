@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Mapping
 
 #####################################################################################
-class IMetrics(ABC):
+class MetricsABC(ABC):
     """
     Compute metrics based on sampled data.
     """
@@ -15,7 +15,7 @@ class IMetrics(ABC):
             self,
             model: torch.nn.Module,
             data: Mapping[str, torch.Tensor],
-        ) -> Mapping[str, float]:
+        ) -> Mapping[str, torch.Tensor]:
         """
         Compute metrics.
 
