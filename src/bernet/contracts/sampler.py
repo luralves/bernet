@@ -46,7 +46,7 @@ class BatchSample():
         return
 
 #-- Main class
-class SamplerABC(ABC):
+class ISampler(ABC):
     """
     Provides data for training and validating.
     """
@@ -86,9 +86,20 @@ class SamplerABC(ABC):
         ...
     
     @abstractmethod
-    def metrics(self) -> Mapping[str, torch.Tensor]:
+    def test(self) -> Mapping[str, torch.Tensor]:
         """
-        Returns the data necessary for metrics computation.
+        Returns the data necessary for testing.
+
+        Returns:
+        Mapping[str, torch.Tensor]
+            Dictionary structured data.
+        """
+        ...
+    
+    @abstractmethod
+    def validate(self) -> Mapping[str, torch.Tensor]:
+        """
+        Returns the data necessary for validation.
 
         Returns:
         Mapping[str, torch.Tensor]

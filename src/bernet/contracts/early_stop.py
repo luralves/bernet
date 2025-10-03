@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from bernet.contracts.loss import BatchLoss
 
 #####################################################################################
-class EarlyStopABC(ABC):
+class IEarlyStop(ABC):
     """
     Provides early stopping functionality during training.
     """

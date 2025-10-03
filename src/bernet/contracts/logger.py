@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from bernet.contracts.loss import BatchLoss
 
 #####################################################################################
-class LoggerABC(ABC):
+class ILogger(ABC):
     """
     Stores a summary about the model and training data.
     """

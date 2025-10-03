@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Mapping
 
 #####################################################################################
-class MetricsABC(ABC):
+class IMetrics(ABC):
     """
     Compute metrics based on sampled data.
     """

@@ -12,7 +12,7 @@ from bernet.contracts.logger import LoggerABC
 from bernet.contracts.early_stop import EarlyStopABC
 
 #####################################################################################
-class TrainerABC(ABC):
+class ITrainer(ABC):
     """
     Trainer class for training neural networks.
     """

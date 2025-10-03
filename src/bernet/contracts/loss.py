@@ -124,7 +124,7 @@ class BatchLoss():
         )
 
 #-- Main class
-class LossABC(ABC):
+class ILoss(ABC):
     """
     Compute loss terms based on sampled data.
     """
