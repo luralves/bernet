@@ -6,21 +6,74 @@ import math
 
 from typing import Mapping, Any, List
 
-from bernet.contracts.logger import LoggerABC
+from bernet.contracts.logger import ILogger
 from bernet.contracts.loss import BatchLoss
 
 #####################################################################################
-class DefaultLogger(LoggerABC):
+#-- Upload data
+def load_training_data(
+        filename: str,
+    ) -> Mapping[str, List[float]]:
+    """
+    Reads the train_data table saved by DFLTLogger.save(...) and returns
+    a dictionary mapping column name -> list of float values.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the .log file saved by DFLTLogger.
+    col_width : int
+        Column width used in save(). Must match the one used when writing.
+
+    Returns
+    -------
+    Dict[str, List[float]]
+        Dictionary with column names as keys and lists of floats as values.
+    """
+    BEGIN_MARKER = "## BEGIN TRAIN DATA"
+    END_MARKER = "## END TRAIN DATA"
+    col_width = 16
+
+    with open(filename, "r", encoding="utf-8") as f:
+        lines = [line.rstrip("\n") for line in f]
+
+    #-- Find table boundaries
+    try:
+        start_idx = lines.index(BEGIN_MARKER)
+        end_idx   = lines.index(END_MARKER)
+    except ValueError:
+        raise RuntimeError("Could not find train_data markers in log file.")
+
+    #-- Header line
+    header_line = lines[start_idx + 1]
+    ncols = len(header_line) // col_width
+    colnames = [header_line[i * col_width:(i+1) * col_width].strip()
+                for i in range(ncols)]
+
+    #-- Initialize dict
+    data: Mapping[str, List[float]] = {c: [] for c in colnames}
+
+    #-- Parse rows
+    for row in lines[start_idx + 2 : end_idx]:
+        for i, cname in enumerate(colnames):
+            cell = row[i * col_width:(i+1) * col_width].strip()
+            try:
+                val = float(cell)
+            except Exception:
+                val = math.nan
+            data[cname].append(val)
+
+    return data
+
+#-- Main class
+class Logger(ILogger):
     """
     Default Logger class.
     """
 
     def __init__(self):
         super().__init__()
-
-        #-- Parameters
-        self.log = {}
-
+        self.data = {}
         return
     
     def train_start(
@@ -31,58 +84,58 @@ class DefaultLogger(LoggerABC):
         super().train_start(model, optimizer)
 
         # Model info
-        self.log['model_class'] = model.__class__.__name__
-        self.log['model_module'] = model.__module__
-        self.log['model_str'] = str(model)
-        self.log['num_parameters'] = sum(p.numel() for p in model.parameters())
-        self.log['num_trainable_parameters'] = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        self.data['model_class'] = model.__class__.__name__
+        self.data['model_module'] = model.__module__
+        self.data['model_str'] = str(model)
+        self.data['num_parameters'] = sum(p.numel() for p in model.parameters())
+        self.data['num_trainable_parameters'] = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
         # Optimizer info
-        self.log['optimizer_class'] = optimizer.__class__.__name__
-        self.log['optimizer_module'] = optimizer.__module__
-        self.log['optimizer_params'] = optimizer.defaults
+        self.data['optimizer_class'] = optimizer.__class__.__name__
+        self.data['optimizer_module'] = optimizer.__module__
+        self.data['optimizer_params'] = optimizer.defaults
 
         return
     
     def epoch_end(
             self,
             losses: BatchLoss,
-            metrics: Mapping[str, float],
+            tests: Mapping[str, float],
         ) -> None:
-        super().epoch_end(losses, metrics)
+        super().epoch_end(losses, tests)
 
         #-- Create trianing data
-        if not ("train_data" in self.log):
-            self.log["train_data"] = {"iteration": [], "loss": [], "residual": [], "boundary": [], "initial": [], "observational": []}
+        if not ("train_data" in self.data):
+            self.data["train_data"] = {"iteration": [], "loss": [], "residual": [], "boundary": [], "initial": [], "observational": []}
             
-            if metrics:
-                for k, v in metrics.items():
-                    self.log["train_data"][k] = []
+            if tests:
+                for k, v in tests.items():
+                    self.data["train_data"][k] = []
         
         #-- Add data
-        self.log["train_data"]["iteration"].append(len(self.log["train_data"]["iteration"]) + 1)
-        self.log["train_data"]["loss"].append(losses.sum())
-        self.log["train_data"]["residual"].append(losses.residual)
-        self.log["train_data"]["boundary"].append(losses.boundary)
-        self.log["train_data"]["initial"].append(losses.initial)
-        self.log["train_data"]["observational"].append(losses.observational)
+        self.data["train_data"]["iteration"].append(len(self.data["train_data"]["iteration"]) + 1)
+        self.data["train_data"]["loss"].append(losses.sum())
+        self.data["train_data"]["residual"].append(losses.residual)
+        self.data["train_data"]["boundary"].append(losses.boundary)
+        self.data["train_data"]["initial"].append(losses.initial)
+        self.data["train_data"]["observational"].append(losses.observational)
 
-        if metrics:
-            for k, v in metrics.items():
-                self.log["train_data"][k].append(v)
+        if tests:
+            for k, v in tests.items():
+                self.data["train_data"][k + " [test]"].append(v)
 
         return
     
     def exception(self, e) -> None:
         super().exception(e)
         #-- Add exception
-        self.log["exception"] = str(e)
+        self.data["exception"] = str(e)
         return
     
     def training_end(self, stopped: bool) -> None:
         super().training_end(stopped)
         #-- Add training end
-        self.log["stopped"] = stopped
+        self.data["stopped"] = stopped
         return
     
     def save(self, filename: str) -> None:
@@ -96,16 +149,16 @@ class DefaultLogger(LoggerABC):
         BEGIN_MARKER = "## BEGIN TRAIN DATA"
         END_MARKER = "## END TRAIN DATA"
 
-        #-- Ensure .log extension
-        if not filename.lower().endswith(".log"):
-            filename = f"{filename}.log"
+        #-- Ensure .data extension
+        if not filename.lower().endswith(".data"):
+            filename = f"{filename}.data"
 
         #-- Make sure parent folder exists
         os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
 
         #-- Split metadata vs. table
-        train_data = self.log.get("train_data", None)
-        meta = {k: v for k, v in self.log.items() if k != "train_data"}
+        train_data = self.data.get("train_data", None)
+        meta = {k: v for k, v in self.data.items() if k != "train_data"}
 
         def _to_serializable(obj: Any) -> Any:
             """Make meta JSON-safe."""
@@ -182,4 +235,5 @@ class DefaultLogger(LoggerABC):
             f.write("\n".join(lines))
 
         return
-    
+
+#####################################################################################

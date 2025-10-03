@@ -97,7 +97,7 @@ class ISampler(ABC):
         ...
     
     @abstractmethod
-    def validate(self) -> Mapping[str, torch.Tensor]:
+    def validate(self) -> Mapping[str, torch.Tensor] | None:
         """
         Returns the data necessary for validation.
 

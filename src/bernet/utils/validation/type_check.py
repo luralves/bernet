@@ -55,9 +55,33 @@ class TypeCheck():
         return
     
     @staticmethod
+    def str_none(x: Any, name: str = "x") -> None:
+        if not (isinstance(x, str) or x is None):
+            raise TypeError(f"TypeError: '{name}' must be of type str or None")
+        return
+    
+    @staticmethod
     def iterable(x: Any, name: str = "x") -> None:
         if not isinstance(x, Iterable):
             raise TypeError(f"TypeError: '{name}' must be of type Iterable")
+        return
+    
+    @staticmethod
+    def iterable_none(x: Any, name: str = "x") -> None:
+        if not isinstance(x, Iterable):
+            raise TypeError(f"TypeError: '{name}' must be of type Iterable")
+        return
+    
+    @staticmethod
+    def abc(x: Any, obj: Any, name: str = "x") -> None:
+        if not isinstance(x, obj):
+            raise TypeError(f"TypeError: '{name}' must implement Obj.")
+        return
+
+    @staticmethod
+    def abc_none(x: Any, obj: Any, name: str = "x") -> None:
+        if not (isinstance(x, obj) or x is None):
+            raise TypeError(f"TypeError: '{name}' must implement Obj.")
         return
     
 #####################################################################################

@@ -1,1 +1,1 @@
-from bernet.core.sampler.square_sampler import SQUARESampler
+from bernet.core.sampler.square import Square

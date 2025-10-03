@@ -1,15 +1,14 @@
 #####################################################################################
 import torch
+import numpy.typing as npt
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Mapping
 
-from bernet.contracts.sampler import SamplerABC
-from bernet.contracts.loss import LossABC
-from bernet.contracts.metrics import MetricsABC
-from bernet.contracts.callbacks import CallbacksABC
-from bernet.contracts.logger import LoggerABC
-from bernet.contracts.early_stop import EarlyStopABC
+from bernet.contracts.sampler import ISampler
+from bernet.contracts.loss import ILoss
+
+from bernet.utils.validation import TypeCheck
 
 #####################################################################################
 class ITrainer(ABC):
@@ -20,65 +19,35 @@ class ITrainer(ABC):
     def __init__(
             self,
             model: torch.nn.Module,
-            sampler: SamplerABC,
-            loss: LossABC,
+            sampler: ISampler,
+            loss: ILoss,
             optimizer: torch.optim.Optimizer,
-            metrics: Optional[List[MetricsABC]] = None,
-            callbacks: Optional[CallbacksABC] = None,
-            logger: Optional[LoggerABC] = None,
-            early_stop: Optional[EarlyStopABC] = None,
-            device: Optional[str | torch.device] = "cpu",
         ) -> None:
         """
         Parameters
         ----------
         model : nn.Module
             The model to be trained.
-        sampler : SamplerABC
+        sampler : ISampler
             The sampler to be used for data loading.
-        loss : LossABC
+        loss : ILoss
             The loss function to be used during training.
         optimizer : torch.optim.Optimizer
             The optimizer to be used for updating model weights.
-        metrics : Optional[MetricsABC]
-            The metrics to be used for evaluation.
-        callback : Optional[CallbackABC]
-            The callback for training events.
-        logger : Optional[LoggerABC]
-            The logger for logging training progress.
-        early_stop : Optional[IEarlyStop]
-            The early stop functionality.
-        device : device
-            The device to run the training on. If "auto", selects GPU if available,
         """
         super().__init__()
 
+        #-- Verification
+        TypeCheck.abc(model, torch.nn.Module)
+        TypeCheck.abc(sampler, ISampler)
+        TypeCheck.abc(loss, ILoss)
+        TypeCheck.abc(optimizer, torch.optim.Optimizer)
+
         #-- Inputs
-        self.model = model
-        self.sampler = sampler
-        self.loss = loss
-        self.optimizer = optimizer
-        self.metrics = metrics
-        self.callbacks = callbacks
-        self.early_stop = early_stop
-        self.logger = logger
-
-        #-- Computed parameters
-        self.device = None
-
-        #-- Select device
-        if device == "auto":
-            if torch.cuda.is_available():
-                self.device =  torch.device("cuda")
-            elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
-                self.device =  torch.device("mps")
-            else:
-                self.device =  torch.device("cpu")
-        else:
-            self.device = torch.device(device) if isinstance(device, str) else device
-
-        #-- Move model to device
-        self.model.to(self.device)
+        self._model = model
+        self._sampler = sampler
+        self._loss = loss
+        self._optimizer = optimizer
 
         return
 
@@ -88,7 +57,7 @@ class ITrainer(ABC):
             self,
             num_epochs: int,
             verbose: bool,
-        ) -> None:
+        ) -> Mapping[str, npt.NDArray]:
         """
         Perform training.
 
@@ -98,6 +67,12 @@ class ITrainer(ABC):
             Number of epochs to train the model for.
         verbose : bool
             Show training progress.
+        
+        Returns
+        -------
+        Mapping[str, npt.NDArray]
+            Dict containing training data, such as losses, test,
+            and validation data.
         """
         ...
     

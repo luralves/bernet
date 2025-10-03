@@ -3,12 +3,13 @@ import torch
 
 from typing import Mapping, Callable
 
-from bernet.contracts.loss import LossABC
+from bernet.contracts.loss import ILoss
+
 from bernet.utils.analysis import Losses
 from bernet.utils.validation import TypeCheck
 
 #####################################################################################
-class ResidualLossBase(LossABC):
+class LossBASE(ILoss):
 
     def __init__(
             self,
@@ -68,4 +69,4 @@ class ResidualLossBase(LossABC):
         loss = self._func_ob(y_hat, batch["y"])
         return loss
 
-    
+#####################################################################################

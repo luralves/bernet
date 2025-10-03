@@ -5,14 +5,14 @@ import math
 
 from typing import Literal, Optional, List, Mapping, Callable, Union, get_args
 
-from bernet.contracts.sampler import SamplerABC, BatchSample
+from bernet.contracts.sampler import ISampler, BatchSample
 from bernet.utils.statistics import lhs_1, lhs_d
 from bernet.utils.validation import TypeCheck, ValueCheck
 
 #####################################################################################
 Side = Literal["top", "bottom", "left", "right"]
 
-class SQUARESampler(SamplerABC):
+class Square(ISampler):
     """
     Sampler for PINNs on the unit square [0,1]^2.
 
@@ -175,9 +175,14 @@ class SQUARESampler(SamplerABC):
         return self._batches[index]
     
     #-- Override
-    def metrics(self) -> Mapping[str, torch.Tensor]:
+    def test(self) -> Mapping[str, torch.Tensor]:
         super().metrics()
         return self._metrics
+    
+    #-- Override
+    def validate(self) -> Mapping[str, torch.Tensor] | None:
+        super().metrics()
+        return None
     
     #----------------------------------------------------------------#
     #-- Auxiliary
@@ -338,7 +343,7 @@ class SQUARESampler(SamplerABC):
         #-- Batches
         if self._batch_size is None:
             self._batches = [
-                Batch(
+                BatchSample(
                     residual={"x": torch.from_numpy(x_rs).to(dtype=self._dtype)},
                     boundary={"x": torch.from_numpy(x_bc).to(dtype=self._dtype), "y": torch.from_numpy(self._func(x_bc)).to(dtype=self._dtype)} if x_bc else None,
                     initial={"x": torch.from_numpy(x_in).to(dtype=self._dtype), "y": torch.from_numpy(self._func(x_in)).to(dtype=self._dtype)} if x_in else None,
