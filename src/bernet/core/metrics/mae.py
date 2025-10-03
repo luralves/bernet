@@ -3,12 +3,13 @@ import torch
 
 from typing import Mapping
 
-from bernet.contracts import MetricsABC
+from bernet.contracts import IMetrics
 from bernet.utils.analysis import Losses
 
 #####################################################################################
-class MAEMetrics(MetricsABC):
-    
+class MAE(IMetrics):
+    """Mean Absolute Error"""
+
     #-- Override
     def evaluate(self, model: torch.Tensor, data: Mapping[str, float]) -> Mapping[str, torch.Tensor]:
         super().evaluate(model, data)
