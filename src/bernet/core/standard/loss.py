@@ -5,7 +5,7 @@ from typing import Mapping, Callable
 
 from bernet.contracts.loss import ILoss
 
-from bernet.utils.analysis import Losses
+from bernet.utils.processing import Losses
 from bernet.utils.validation import TypeCheck
 
 #####################################################################################

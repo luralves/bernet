@@ -4,7 +4,7 @@ import torch
 from typing import Mapping
 
 from bernet.contracts import IMetrics
-from bernet.utils.analysis import Losses
+from bernet.utils.processing import Losses
 
 #####################################################################################
 class MSPE(IMetrics):
@@ -15,6 +15,6 @@ class MSPE(IMetrics):
         super().evaluate(model, data)
         y_hat = model(data["x"])
         mse = Losses.mspe(y_hat, data["y"])
-        return {"mse": mse}
+        return {"mspe": mse}
 
 #####################################################################################

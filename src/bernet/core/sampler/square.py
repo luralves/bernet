@@ -176,12 +176,12 @@ class Square(ISampler):
     
     #-- Override
     def test(self) -> Mapping[str, torch.Tensor]:
-        super().metrics()
+        super().test()
         return self._metrics
     
     #-- Override
     def validate(self) -> Mapping[str, torch.Tensor] | None:
-        super().metrics()
+        super().validate()
         return None
     
     #----------------------------------------------------------------#

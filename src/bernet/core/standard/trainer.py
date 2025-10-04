@@ -8,13 +8,13 @@ from bernet.contracts.sampler import ISampler
 from bernet.contracts.loss import ILoss, BatchLoss
 from bernet.contracts.callbacks import ICallbacks
 from bernet.contracts.early_stop import IEarlyStop
+from bernet.contracts.logger import ILogger
 from bernet.contracts.trainer import ITrainer
 
 from bernet.core.metrics import MSE, MAE, MSPE, MAPE
-from bernet.core.standard.logger import Logger
 
 from bernet.utils.validation import TypeCheck, ValueCheck
-from bernet.utils.analysis import Initialization
+from bernet.utils.processing import Initialization
 
 #####################################################################################
 Metrics = Literal[
@@ -45,7 +45,7 @@ class Trainer(ITrainer):
             callbacks: Optional[ICallbacks] = None,
             early_stop: Optional[IEarlyStop] = None,
             initialization: Optional[Weights] = "",
-            filename: Optional[str] = None,
+            logger: Optional[ILogger] = None,
             device: Optional[str | torch.device] = "cpu",
         ) -> None:
         """
@@ -65,8 +65,8 @@ class Trainer(ITrainer):
             The callback for training events.
         early_stop : Optional[IEarlyStop]
             The early stop functionality.
-        filename : Optional[str]
-            Filename to save training log.
+        logger : Optional[ILogger]
+            Logger class necessary to store data training.
         device : device
             The device to run the training on. If "auto", selects GPU if available,
         """
@@ -77,11 +77,12 @@ class Trainer(ITrainer):
         TypeCheck.abc_none(callbacks, ICallbacks)
         TypeCheck.abc_none(early_stop, IEarlyStop)
         TypeCheck.iterable_none(initialization)
-        TypeCheck.str_none(filename)
+        TypeCheck.abc_none(logger, ILogger)
         TypeCheck.str_none(device)
 
         if metrics is not None:
-            ValueCheck.on_iterable(metrics, get_args(Metrics))
+            for metric in metrics:
+                ValueCheck.on_iterable(metric, get_args(Metrics))
         
         if initialization is not None:
             ValueCheck.on_iterable(initialization, get_args(Weights))
@@ -89,13 +90,11 @@ class Trainer(ITrainer):
         #-- Inputs
         self._callbacks = callbacks
         self._early_stop = early_stop
-        self._filename = filename
+        self._logger = logger
 
         #-- Auxiliary parameters
         self._metrics: List[IMetrics] | None = [] if metrics is not None else None
         self._device: torch.device = None
-
-        self._logger = Logger()
 
         #-- Select metrics
         if metrics is not None:
@@ -211,7 +210,7 @@ class Trainer(ITrainer):
 
                 #-- Log epoch
                 if self._logger is not None:
-                    self._logger.epoch_end(losses=avg_terms, metrics=tests)
+                    self._logger.epoch_end(losses=avg_terms, tests=tests)
 
                 #-- Early stopping
                 if self._early_stop:
@@ -270,4 +269,22 @@ class Trainer(ITrainer):
             if self._logger is not None:
                 self._logger.training_end(stopped=False)
         
-        return self._logger.data["train_data"]
+        return None if self._logger is None else self._logger.data
+
+    def save(self, filename: str) -> None:
+        """
+        Save logger to file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to save the data.
+        """
+
+        #-- Validation
+        TypeCheck.str(filename)
+
+        #-- Save
+        self._logger.save(filename)
+
+        return

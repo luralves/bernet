@@ -4,7 +4,7 @@ import torch
 from typing import Mapping
 
 from bernet.contracts import IMetrics
-from bernet.utils.analysis import Losses
+from bernet.utils.processing import Losses
 
 #####################################################################################
 class MSE(IMetrics):

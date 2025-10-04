@@ -25,6 +25,12 @@ class TypeCheck():
         return
     
     @staticmethod
+    def str(x: Any, name: str = "x") -> None:
+        if not isinstance(x, str):
+            raise TypeError(f"TypeError: '{name}' must be of type str")
+        return
+    
+    @staticmethod
     def bool(x: Any, name: str = "x") -> None:
         if not isinstance(x, bool):
             raise TypeError(f"TypeError: '{name}' must be of type bool")

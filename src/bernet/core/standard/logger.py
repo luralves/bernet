@@ -4,13 +4,13 @@ import os
 import json
 import math
 
-from typing import Mapping, Any, List
+from typing import Iterable, Mapping, Any, List, Optional
 
 from bernet.contracts.logger import ILogger
 from bernet.contracts.loss import BatchLoss
 
 #####################################################################################
-#-- Upload data
+#-- Upload _data
 def load_training_data(
         filename: str,
     ) -> Mapping[str, List[float]]:
@@ -51,7 +51,7 @@ def load_training_data(
                 for i in range(ncols)]
 
     #-- Initialize dict
-    data: Mapping[str, List[float]] = {c: [] for c in colnames}
+    _data: Mapping[str, List[float]] = {c: [] for c in colnames}
 
     #-- Parse rows
     for row in lines[start_idx + 2 : end_idx]:
@@ -61,9 +61,9 @@ def load_training_data(
                 val = float(cell)
             except Exception:
                 val = math.nan
-            data[cname].append(val)
+            _data[cname].append(val)
 
-    return data
+    return _data
 
 #-- Main class
 class Logger(ILogger):
@@ -71,11 +71,20 @@ class Logger(ILogger):
     Default Logger class.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.data = {}
+        
+        #-- Internal data
+        self._data = {}
+
         return
     
+    #-- Override
+    @property
+    def data(self) -> Mapping[str, Iterable[float]] | None:
+        return self._data.get("train_data", None)
+    
+    #-- Override
     def train_start(
             self,
             model: torch.nn.Module,
@@ -84,19 +93,20 @@ class Logger(ILogger):
         super().train_start(model, optimizer)
 
         # Model info
-        self.data['model_class'] = model.__class__.__name__
-        self.data['model_module'] = model.__module__
-        self.data['model_str'] = str(model)
-        self.data['num_parameters'] = sum(p.numel() for p in model.parameters())
-        self.data['num_trainable_parameters'] = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        self._data['model_class'] = model.__class__.__name__
+        self._data['model_module'] = model.__module__
+        self._data['model_str'] = str(model)
+        self._data['num_parameters'] = sum(p.numel() for p in model.parameters())
+        self._data['num_trainable_parameters'] = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
         # Optimizer info
-        self.data['optimizer_class'] = optimizer.__class__.__name__
-        self.data['optimizer_module'] = optimizer.__module__
-        self.data['optimizer_params'] = optimizer.defaults
+        self._data['optimizer_class'] = optimizer.__class__.__name__
+        self._data['optimizer_module'] = optimizer.__module__
+        self._data['optimizer_params'] = optimizer.defaults
 
         return
     
+    #-- Override
     def epoch_end(
             self,
             losses: BatchLoss,
@@ -104,40 +114,43 @@ class Logger(ILogger):
         ) -> None:
         super().epoch_end(losses, tests)
 
-        #-- Create trianing data
-        if not ("train_data" in self.data):
-            self.data["train_data"] = {"iteration": [], "loss": [], "residual": [], "boundary": [], "initial": [], "observational": []}
+        #-- Create trianing _data
+        if not ("train_data" in self._data):
+            self._data["train_data"] = {"iteration": [], "loss": [], "residual": [], "boundary": [], "initial": [], "observational": []}
             
             if tests:
                 for k, v in tests.items():
-                    self.data["train_data"][k] = []
+                    self._data["train_data"][f"{k} [test]"] = []
         
-        #-- Add data
-        self.data["train_data"]["iteration"].append(len(self.data["train_data"]["iteration"]) + 1)
-        self.data["train_data"]["loss"].append(losses.sum())
-        self.data["train_data"]["residual"].append(losses.residual)
-        self.data["train_data"]["boundary"].append(losses.boundary)
-        self.data["train_data"]["initial"].append(losses.initial)
-        self.data["train_data"]["observational"].append(losses.observational)
+        #-- Add _data
+        self._data["train_data"]["iteration"].append(len(self._data["train_data"]["iteration"]) + 1)
+        self._data["train_data"]["loss"].append(losses.sum())
+        self._data["train_data"]["residual"].append(losses.residual)
+        self._data["train_data"]["boundary"].append(losses.boundary)
+        self._data["train_data"]["initial"].append(losses.initial)
+        self._data["train_data"]["observational"].append(losses.observational)
 
         if tests:
             for k, v in tests.items():
-                self.data["train_data"][k + " [test]"].append(v)
+                self._data["train_data"][f"{k} [test]"].append(v)
 
         return
     
+    #-- Override
     def exception(self, e) -> None:
         super().exception(e)
         #-- Add exception
-        self.data["exception"] = str(e)
+        self._data["exception"] = str(e)
         return
     
+    #-- Override
     def training_end(self, stopped: bool) -> None:
         super().training_end(stopped)
         #-- Add training end
-        self.data["stopped"] = stopped
+        self._data["stopped"] = stopped
         return
     
+    #-- Override
     def save(self, filename: str) -> None:
         super().save(filename)
 
@@ -149,16 +162,16 @@ class Logger(ILogger):
         BEGIN_MARKER = "## BEGIN TRAIN DATA"
         END_MARKER = "## END TRAIN DATA"
 
-        #-- Ensure .data extension
-        if not filename.lower().endswith(".data"):
-            filename = f"{filename}.data"
+        #-- Ensure ._data extension
+        if not filename.lower().endswith(".log"):
+            filename = f"{filename}.log"
 
         #-- Make sure parent folder exists
         os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
 
         #-- Split metadata vs. table
-        train_data = self.data.get("train_data", None)
-        meta = {k: v for k, v in self.data.items() if k != "train_data"}
+        train_data = self._data.get("train_data", None)
+        meta = {k: v for k, v in self._data.items() if k != "train_data"}
 
         def _to_serializable(obj: Any) -> Any:
             """Make meta JSON-safe."""

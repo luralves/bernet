@@ -1,7 +1,7 @@
 #####################################################################################
 import torch
 
-from typing import Mapping, List
+from typing import Iterable, Mapping, List
 from abc import ABC, abstractmethod
 
 from bernet.contracts.loss import BatchLoss
@@ -11,7 +11,12 @@ class ILogger(ABC):
     """
     Stores a summary about the model and training data.
     """
-
+    
+    @property
+    @abstractmethod
+    def data(self) -> Mapping[str, Iterable[float]] | None:
+        ...
+    
     @abstractmethod
     def train_start(
             self,
@@ -79,13 +84,13 @@ class ILogger(ABC):
     @abstractmethod
     def save(
             self,
-            file: str,
+            filename: str,
         ) -> None:
         """
         Parameters
         ----------
-        file : str
-            The name of the file to save the data to.
+        filename : str
+            The name of the file to save the data.
         """
         ...
     
