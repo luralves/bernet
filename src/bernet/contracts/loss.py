@@ -134,7 +134,7 @@ class ILoss(ABC):
             self,
             model: torch.nn.Module,
             batch: Mapping[str, torch.Tensor]
-        ) -> torch.Tensor:
+        ) -> torch.Tensor | None:
         """
         Compute residual loss.
 
@@ -157,7 +157,7 @@ class ILoss(ABC):
             self,
             model: torch.nn.Module,
             batch: Mapping[str, torch.Tensor]
-        ) -> torch.Tensor:
+        ) -> torch.Tensor | None:
         """
         Compute residual loss.
 
@@ -180,7 +180,7 @@ class ILoss(ABC):
             self,
             model: torch.nn.Module,
             batch: Mapping[str, torch.Tensor]
-        ) -> torch.Tensor:
+        ) -> torch.Tensor | None:
         """
         Compute initial loss.
 
@@ -203,7 +203,7 @@ class ILoss(ABC):
             self,
             model: torch.nn.Module,
             batch: Mapping[str, torch.Tensor]
-        ) -> torch.Tensor:
+        ) -> torch.Tensor | None:
         """
         Compute initial loss.
 

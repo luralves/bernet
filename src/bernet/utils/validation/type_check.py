@@ -1,7 +1,8 @@
 #####################################################################################
 import torch
 
-from typing import Any, Iterable, get_args
+from typing import Any
+from collections.abc import Iterable, Mapping
 
 #####################################################################################
 class TypeCheck():
@@ -67,10 +68,13 @@ class TypeCheck():
         return
     
     @staticmethod
-    def iterable(x: Any, name: str = "x") -> None:
+    def iterable(x: Any, name: str = "x", stop: bool = True) -> bool:
         if not isinstance(x, Iterable):
-            raise TypeError(f"TypeError: '{name}' must be of type Iterable")
-        return
+            if stop:
+                raise TypeError(f"TypeError: '{name}' must be of type Iterable")
+            else:
+                return False
+        return True
     
     @staticmethod
     def iterable_none(x: Any, name: str = "x") -> None:
@@ -79,15 +83,30 @@ class TypeCheck():
         return
     
     @staticmethod
-    def abc(x: Any, obj: Any, name: str = "x") -> None:
+    def abc(x: Any, obj: Any, name: str = "x", stop: bool = True) -> bool:
         if not isinstance(x, obj):
-            raise TypeError(f"TypeError: '{name}' must implement Obj.")
-        return
+            if stop:
+                raise TypeError(f"TypeError: '{name}' must implement Obj.")
+            else:
+                return False
+        return True
 
     @staticmethod
     def abc_none(x: Any, obj: Any, name: str = "x") -> None:
         if not (isinstance(x, obj) or x is None):
             raise TypeError(f"TypeError: '{name}' must implement Obj.")
+        return
+    
+    @staticmethod
+    def mapping(x: Any, name: str = "x") -> None:
+        if not isinstance(x, Mapping):
+            raise TypeError(f"TypeError: '{name}' must be of type Mapping.")
+        return
+    
+    @staticmethod
+    def mapping_tensor(x: Any, name: str = "x") -> None:
+        if not (isinstance(x, Mapping) or isinstance(x, torch.Tensor)):
+            raise TypeError(f"TypeError: '{name}' must be of type Mapping.")
         return
     
 #####################################################################################
