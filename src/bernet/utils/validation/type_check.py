@@ -1,112 +1,103 @@
 #####################################################################################
 import torch
 
-from typing import Any
+from typing import Any, Optional
 from collections.abc import Iterable, Mapping
 
 #####################################################################################
+#-- Helper function
+def _validation(value: Any, target: Iterable[Any], message: str, stop: bool) -> bool:
+    if not (True in [isinstance(value, reference) for reference in target]):
+        if stop:
+            raise TypeError(f"Type error: {message}")
+        else:
+            return False
+    return True
+
+#-- Main class
 class TypeCheck():
     
     @staticmethod
-    def float(x: Any, name: str = "x") -> None:
-        if not isinstance(x, float):
-            raise TypeError(f"TypeError: '{name}' must be of type float")
-        return
+    def float(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> None:
+        return _validation(
+            value=value,
+            target=[float, type(None)] if include_none else [float],
+            message=message if message is not None else f"{value} must be of type float",
+            stop=stop,
+        )
     
     @staticmethod
-    def int(x: Any, name: str = "x") -> None:
-        if not isinstance(x, int):
-            raise TypeError(f"TypeError: '{name}' must be of type int")
-        return
+    def int(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> None:
+        return _validation(
+            value=value,
+            target=[int, type(None)] if include_none else [int],
+            message=message if message is not None else f"{value} must be of type int",
+            stop=stop,
+        )
+        
+    @staticmethod
+    def str(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> None:
+        return _validation(
+            value=value,
+            target=[str, type(None)] if include_none else [str],
+            message=message if message is not None else f"{value} must be of type str",
+            stop=stop,
+        )
     
     @staticmethod
-    def number(x: Any, name: str = "x") -> None:
-        if not (isinstance(x, float) or isinstance(x, int)):
-            raise TypeError(f"TypeError: '{name}' must be of type float or int")
-        return
+    def bool(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> None:
+        return _validation(
+            value=value,
+            target=[bool, type(None)] if include_none else [bool],
+            message=message if message is not None else f"{value} must be of type bool",
+            stop=stop,
+        )
     
     @staticmethod
-    def str(x: Any, name: str = "x") -> None:
-        if not isinstance(x, str):
-            raise TypeError(f"TypeError: '{name}' must be of type str")
-        return
+    def number(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> None:
+        return _validation(
+            value=value,
+            target=[float, int, type(None)] if include_none else [float, int],
+            message=message if message is not None else f"{value} must be of type float or int",
+            stop=stop,
+        )
     
     @staticmethod
-    def bool(x: Any, name: str = "x") -> None:
-        if not isinstance(x, bool):
-            raise TypeError(f"TypeError: '{name}' must be of type bool")
-        return
+    def iterable(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> bool:
+        return _validation(
+            value=value,
+            target=[Iterable, type(None)] if include_none else [Iterable],
+            message=message if message is not None else f"{value} must be an Iterable",
+            stop=stop,
+        )
     
     @staticmethod
-    def callable(x: Any, name: str = "x") -> None:
-        if not callable(x):
-            raise TypeError(f"TypeError: '{name}' must be of type callable")
-        return
+    def mapping(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> bool:
+        return _validation(
+            value=value,
+            target=[Mapping, type(None)] if include_none else [Mapping],
+            message=message if message is not None else f"{value} must be of type Mapping",
+            stop=stop,
+        )
     
     @staticmethod
-    def torch_dtype(x: Any, name: str = "x") -> None:
-        if not isinstance(x, torch.dtype):
-            raise TypeError(f"TypeError: '{name}' must be of type torch.dtype")
-        return
+    def generic(value: Any, target: Iterable[Any], message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> bool:
+        return _validation(
+            value=value,
+            target=list(target) + [type(None)] if include_none else target,
+            message=message if message is not None else f"{value} must be one of {target}",
+            stop=stop,
+        )
     
     @staticmethod
-    def float_none(x: Any, name: str = "x") -> None:
-        if not (isinstance(x, float) or x is None):
-            raise TypeError(f"TypeError: '{name}' must be of type float or None")
-        return
-    
-    @staticmethod
-    def int_none(x: Any, name: str = "x") -> None:
-        if not (isinstance(x, int) or x is None):
-            raise TypeError(f"TypeError: '{name}' must be of type int or None")
-        return
-    
-    @staticmethod
-    def str_none(x: Any, name: str = "x") -> None:
-        if not (isinstance(x, str) or x is None):
-            raise TypeError(f"TypeError: '{name}' must be of type str or None")
-        return
-    
-    @staticmethod
-    def iterable(x: Any, name: str = "x", stop: bool = True) -> bool:
-        if not isinstance(x, Iterable):
+    def callable(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> bool:
+        if include_none and value is None:
+            return True
+        if not callable(value):
             if stop:
-                raise TypeError(f"TypeError: '{name}' must be of type Iterable")
-            else:
-                return False
-        return True
-    
-    @staticmethod
-    def iterable_none(x: Any, name: str = "x") -> None:
-        if not isinstance(x, Iterable):
-            raise TypeError(f"TypeError: '{name}' must be of type Iterable")
-        return
-    
-    @staticmethod
-    def abc(x: Any, obj: Any, name: str = "x", stop: bool = True) -> bool:
-        if not isinstance(x, obj):
-            if stop:
-                raise TypeError(f"TypeError: '{name}' must implement Obj.")
+                raise TypeError(f"TypeError: '{value}' must be of type callable")
             else:
                 return False
         return True
 
-    @staticmethod
-    def abc_none(x: Any, obj: Any, name: str = "x") -> None:
-        if not (isinstance(x, obj) or x is None):
-            raise TypeError(f"TypeError: '{name}' must implement Obj.")
-        return
-    
-    @staticmethod
-    def mapping(x: Any, name: str = "x") -> None:
-        if not isinstance(x, Mapping):
-            raise TypeError(f"TypeError: '{name}' must be of type Mapping.")
-        return
-    
-    @staticmethod
-    def mapping_tensor(x: Any, name: str = "x") -> None:
-        if not (isinstance(x, Mapping) or isinstance(x, torch.Tensor)):
-            raise TypeError(f"TypeError: '{name}' must be of type Mapping.")
-        return
-    
 #####################################################################################
