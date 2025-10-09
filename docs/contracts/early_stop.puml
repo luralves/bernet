@@ -22,7 +22,7 @@ skinparam classAttributeIconSize 0
 class IEarlyStop {
     **  abstract**
     --
-    + ** evaluate(**losses: Losses, metrics: Mapping[str, List[float]]**)**: bool
+    + ** evaluate(**losses: Losses, metrics: TensorData**)**: Signal
 }
 
 @enduml

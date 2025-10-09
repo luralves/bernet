@@ -43,12 +43,8 @@ class ITrainer {
     - ** sampler**: ISampler
     - ** loss**: ILoss
     - ** optimizer**: Optimizer
-    - ** metrics**: Optional[IMetrics]
-    - ** callbacks**: Optional[ICallbacks]
-    - ** logger**: Optional[ILogger]
-    - ** early_stop**: Optional[IEarlyStop]
     --
-    + ** fit(**num_epochs: int, verbose: bool**)**: bool
+    + ** fit(**num_epochs: int, verbose: bool**)**: Any
 }
 
 ' Relationships

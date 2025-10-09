@@ -22,13 +22,13 @@ skinparam classAttributeIconSize 0
 class ICallbacks {
     **  abstract**
     --
-    + ** train_start()**: None
-    + ** epoch_start()**: None
-    + ** batch_start()**: None
-    + ** batch_end()**: None
-    + ** epoch_end()**: None
-    + ** exception(**error: BaseException**)**: None
-    + ** train_end(**stopped: bool**)**: None
+    + ** train_start(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** epoch_start(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** batch_start(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** batch_end(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** epoch_end(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** exception(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** train_end(**&#42;args, &#42;&#42;kargs**)**: None
 }
 
 @enduml

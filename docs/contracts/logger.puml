@@ -22,11 +22,11 @@ skinparam classAttributeIconSize 0
 class ILogger {
     **  abstract**
     --
-    + ** initialize(**model: Module, optimizer: Optimizer**)**: None
-    + ** train_start()**: None
-    + ** epoch_end(**losses: Losses, metrics: Mapping[str, List[float]]**)**: None
-    + ** exception(**error: BaseException**)**: None
-    + ** train_end(**stopped: bool**)**: None
+    + ** initialize(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** train_start(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** epoch_end(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** exception(**&#42;args, &#42;&#42;kargs**)**: None
+    + ** train_end(**&#42;args, &#42;&#42;kargs**)**: None
     + ** save(**file: str**)**: None
 }
 

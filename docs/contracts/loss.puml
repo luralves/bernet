@@ -22,10 +22,10 @@ skinparam classAttributeIconSize 0
 class ILoss {
     **  abstract**
     --
-    + ** residual(**model: Module, batch: Mapping[str, Tensor]**)**: Tensor
-    + ** boundary(**model: Module, batch: Mapping[str, Tensor]**)**: Tensor
-    + ** initial(**model: Module, batch: Mapping[str, Tensor]**)**: Tensor
-    + ** observational(**model: Module, batch: Mapping[str, Tensor]**)**: Tensor
+    + ** residual(**model: Module, batch: TensorData**)**: Tensor
+    + ** boundary(**model: Module, batch: TensorData**)**: Tensor
+    + ** initial(**model: Module, batch: TensorData**)**: Tensor
+    + ** observational(**model: Module, batch: TensorData**)**: Tensor
 }
 
 @enduml

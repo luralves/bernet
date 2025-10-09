@@ -20,20 +20,21 @@ skinparam classAttributeIconSize 0
 
 ' ===== Diagram content =====
 class Batch {
-    **  dataclass**
+    **  NamedTuple**
     --
-    - ** residual**: Mapping[str, Tensor]
-    - ** boundary**: Mapping[str, Tensor]
-    - ** initial**: Mapping[str, Tensor]
-    - ** observational**: Mapping[str, Tensor]
+    - ** residual**: TensorData
+    - ** boundary**: TensorData
+    - ** initial**: TensorData
+    - ** observational**: TensorData
 }
 
 class ISampler {
     **  abstract**
     --
-    + ** batch(**index: int**)**: Batch
-    + ** metrics()**: Mapping[str, Tensor]
     + ** generate()**: int
+    + ** batch(**index: int**)**: Batch
+    + ** test()**: TensorData
+    + ** validation()**: TensorData
 }
 
 ' Relationships

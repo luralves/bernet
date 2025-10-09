@@ -22,7 +22,7 @@ skinparam classAttributeIconSize 0
 class IMetrics {
     **  abstract**
     --
-    + ** evaluate(**model: Module, data: Mapping[str, Tensor]**)**: Mapping[str, Tensor]
+    + ** evaluate(**model: Module, data: TensorData**)**: TensorData
 }
 
 @enduml
