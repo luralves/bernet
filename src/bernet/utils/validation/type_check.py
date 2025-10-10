@@ -1,6 +1,4 @@
 #####################################################################################
-import torch
-
 from typing import Any, Optional
 from collections.abc import Iterable, Mapping
 

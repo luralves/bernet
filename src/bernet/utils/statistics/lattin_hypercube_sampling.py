@@ -3,24 +3,31 @@ import numpy as np
 
 from typing import Callable, Optional, List
 
+from bernet.interface.typing.aliases import NDArray
+
 #####################################################################################
 #--
 def lhs_1(
         n: int,
-        func: Optional[Callable[[np.ndarray | float], np.ndarray | float]] = None,
+        func: Optional[Callable[[NDArray | float], NDArray | float]] = None,
         tol: float = 1e-6,
-    ) -> np.ndarray:
+    ) -> NDArray:
     """
     Latin Hypercube Sampling for unidimensional variables.
 
-    Parameters:
+    Parameters
     ----------
-    - n: int
-    > Number of points.
-    - func: Callable[[np.ndarray | float], np.ndarray | float]
-    > Quantile function (inverse of cumulative distribution function). If func is None, func(x) = x.
-    - tol: float
-    > Zero approximation.
+    n : int
+        Number of points.
+    func : Callable[[np.ndarray | float], np.ndarray | float]
+        Quantile function (inverse of cumulative distribution function). If func is None, func(x) = x.
+    tol: float
+        Zero approximation.
+    
+    Returns
+    -------
+    NDArray
+        Sample.
     """
     
     #-- Define a random generator
@@ -47,22 +54,27 @@ def lhs_1(
 def lhs_d(
         n: int,
         d: int,
-        funcs: List[Optional[Callable[[np.ndarray | float], np.ndarray | float]]] = None,
+        funcs: List[Optional[Callable[[NDArray | float], NDArray | float]]] = None,
         tol: float = 1e-6,
-    ) -> np.ndarray:
+    ) -> NDArray:
     """
     Latin Hypercube Sampling for multidimensional variables.
 
     Parameters:
     ----------
-    - n: int
-    > Number of points.
-    - d: int
-    > Output dimension.
-    - funcs: Callable[[np.ndarray | float], np.ndarray | float]
-    > List of 1uantile functions (inverse of cumulative distribution function). If func is None, func(x) = x.
-    - tol: float
-    > Zero approximation.
+    n : int
+        Number of points.
+    d : int
+        Output dimension.
+    funcs : Callable[[np.ndarray | float], np.ndarray | float]
+        List of 1uantile functions (inverse of cumulative distribution function). If func is None, func(x) = x.
+    tol: float
+        Zero approximation.
+
+    Returns
+    -------
+    NDArray
+        Sample.
     """
     
     #-- Define the output
