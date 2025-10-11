@@ -92,44 +92,5 @@ class ILoss(ABC):
             Tensor loss.
         """
         ...
-    
-    def compute(self, model: Model, batch: Batch) -> Losses:
-        """
-        Compute the losses based on the methods implemented.
-
-        Parameters
-        ----------
-        model : Model
-            PyTorch Module.
-        batch : Batch
-            Data for loss computation.
-        
-        Returns
-        -------
-        Losses
-            Dataclass with the losses computed.
-        """
-
-        #-- Validation
-        TypeCheck.abc(model, Model)
-        TypeCheck.abc(batch, Batch)
-
-        #-- Losses
-        losses = Losses(None, None, None, None)
-
-        #-- Add losses
-        if batch.residual is not None:
-            losses.residual = self.residual(model, batch.residual)
-        
-        if batch.boundary is not None:
-            losses.boundary = self.boundary(model, batch.boundary)
-        
-        if batch.initial is not None:
-            losses.initial = self.initial(model, batch.initial)
-        
-        if batch.observational is not None:
-            losses.observational = self.observational(model, batch.observational)
-        
-        return losses
 
 #####################################################################################

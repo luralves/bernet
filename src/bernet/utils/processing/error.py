@@ -11,13 +11,13 @@ import functools
 
 from typing import Union, Iterable, Callable
 
-from bernet.interface.typing import Tensor
+from bernet.interface.typing.aliases import Tensor
 from bernet.utils.validation.type_check import TypeCheck
 
 #####################################################################################
-class Losses:
+class Error:
     """
-    Losses for continuous outputs.
+    Error for continuous outputs.
     """
 
     @staticmethod
@@ -177,7 +177,7 @@ def mse() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
 
             # Case 1: single tensor
             if TypeCheck.generic(out, [Tensor], stop=False):
-                return Losses.mse(out, torch.zeros_like(out))
+                return Error.mse(out, torch.zeros_like(out))
 
             # We may need to iterate more than once, so snapshot
             if isinstance(out, Iterable):
@@ -185,11 +185,11 @@ def mse() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
 
                 # Case 2: iterable of tensors
                 if items and all(TypeCheck.generic(t, [Tensor], stop=False) for t in items):
-                    return sum(Losses.mse(t, torch.zeros_like(t)) for t in items)
+                    return sum(Error.mse(t, torch.zeros_like(t)) for t in items)
 
                 # Case 3: iterable of iterable-of-tensors (pairs)
                 def is_pair(elem) -> bool:
-                    if not TypeCheck.iterable(elem, stop=False):
+                    if not TypeCheck.sequence(elem, stop=False):
                         return False
                     pair = list(elem)
                     if len(pair) != 2:
@@ -198,7 +198,7 @@ def mse() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
                     return TypeCheck.generic(a, [Tensor], stop=False) and TypeCheck.generic(b, [Tensor], stop=False)
 
                 if items and all(is_pair(p) for p in items):
-                    return sum(Losses.mse(p[0], p[1]) for p in map(list, items))
+                    return sum(Error.mse(p[0], p[1]) for p in map(list, items))
 
             # If nothing matched, raise a helpful error
             raise TypeError(
@@ -229,7 +229,7 @@ def mae() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
 
             # Case 1: single tensor
             if TypeCheck.generic(out, [Tensor], stop=False):
-                return Losses.mae(out, torch.zeros_like(out))
+                return Error.mae(out, torch.zeros_like(out))
 
             # We may need to iterate more than once, so snapshot
             if isinstance(out, Iterable):
@@ -237,11 +237,11 @@ def mae() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
 
                 # Case 2: iterable of tensors
                 if items and all(TypeCheck.generic(t, [Tensor], stop=False) for t in items):
-                    return sum(Losses.mae(t, torch.zeros_like(t)) for t in items)
+                    return sum(Error.mae(t, torch.zeros_like(t)) for t in items)
 
                 # Case 3: iterable of iterable-of-tensors (pairs)
                 def is_pair(elem) -> bool:
-                    if not TypeCheck.iterable(elem, stop=False):
+                    if not TypeCheck.sequence(elem, stop=False):
                         return False
                     pair = list(elem)
                     if len(pair) != 2:
@@ -250,7 +250,7 @@ def mae() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
                     return TypeCheck.generic(a, [Tensor], stop=False) and TypeCheck.generic(b, [Tensor], stop=False)
 
                 if items and all(is_pair(p) for p in items):
-                    return sum(Losses.mae(p[0], p[1]) for p in map(list, items))
+                    return sum(Error.mae(p[0], p[1]) for p in map(list, items))
 
             # If nothing matched, raise a helpful error
             raise TypeError(
@@ -281,7 +281,7 @@ def log_cosh() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
 
             # Case 1: single tensor
             if TypeCheck.generic(out, [Tensor], stop=False):
-                return Losses.log_cosh(out, torch.zeros_like(out))
+                return Error.log_cosh(out, torch.zeros_like(out))
 
             # We may need to iterate more than once, so snapshot
             if isinstance(out, Iterable):
@@ -289,11 +289,11 @@ def log_cosh() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
 
                 # Case 2: iterable of tensors
                 if items and all(TypeCheck.generic(t, [Tensor], stop=False) for t in items):
-                    return sum(Losses.log_cosh(t, torch.zeros_like(t)) for t in items)
+                    return sum(Error.log_cosh(t, torch.zeros_like(t)) for t in items)
 
                 # Case 3: iterable of iterable-of-tensors (pairs)
                 def is_pair(elem) -> bool:
-                    if not TypeCheck.iterable(elem, stop=False):
+                    if not TypeCheck.sequence(elem, stop=False):
                         return False
                     pair = list(elem)
                     if len(pair) != 2:
@@ -302,7 +302,7 @@ def log_cosh() -> Callable[[Callable[..., Output]], Callable[..., Tensor]]:
                     return TypeCheck.generic(a, [Tensor], stop=False) and TypeCheck.generic(b, [Tensor], stop=False)
 
                 if items and all(is_pair(p) for p in items):
-                    return sum(Losses.log_cosh(p[0], p[1]) for p in map(list, items))
+                    return sum(Error.log_cosh(p[0], p[1]) for p in map(list, items))
 
             # If nothing matched, raise a helpful error
             raise TypeError(
@@ -338,7 +338,7 @@ def mape(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[...
 
             # Case 1: single tensor
             if TypeCheck.generic(out, [Tensor], stop=False):
-                return Losses.mape(out, torch.zeros_like(out), eps=eps)
+                return Error.mape(out, torch.zeros_like(out), eps=eps)
 
             # We may need to iterate more than once, so snapshot
             if isinstance(out, Iterable):
@@ -346,11 +346,11 @@ def mape(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[...
 
                 # Case 2: iterable of tensors
                 if items and all(TypeCheck.generic(t, [Tensor], stop=False) for t in items):
-                    return sum(Losses.mape(t, torch.zeros_like(t), eps=eps) for t in items)
+                    return sum(Error.mape(t, torch.zeros_like(t), eps=eps) for t in items)
 
                 # Case 3: iterable of iterable-of-tensors (pairs)
                 def is_pair(elem) -> bool:
-                    if not TypeCheck.iterable(elem, stop=False):
+                    if not TypeCheck.sequence(elem, stop=False):
                         return False
                     pair = list(elem)
                     if len(pair) != 2:
@@ -359,7 +359,7 @@ def mape(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[...
                     return TypeCheck.generic(a, [Tensor], stop=False) and TypeCheck.generic(b, [Tensor], stop=False)
 
                 if items and all(is_pair(p) for p in items):
-                    return sum(Losses.mape(p[0], p[1], eps=eps) for p in map(list, items))
+                    return sum(Error.mape(p[0], p[1], eps=eps) for p in map(list, items))
 
             # If nothing matched, raise a helpful error
             raise TypeError(
@@ -396,7 +396,7 @@ def smape(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[..
 
             # Case 1: single tensor
             if TypeCheck.generic(out, [Tensor], stop=False):
-                return Losses.smape(out, torch.zeros_like(out), eps=eps)
+                return Error.smape(out, torch.zeros_like(out), eps=eps)
 
             # We may need to iterate more than once, so snapshot
             if isinstance(out, Iterable):
@@ -404,11 +404,11 @@ def smape(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[..
 
                 # Case 2: iterable of tensors
                 if items and all(TypeCheck.generic(t, [Tensor], stop=False) for t in items):
-                    return sum(Losses.smape(t, torch.zeros_like(t), eps=eps) for t in items)
+                    return sum(Error.smape(t, torch.zeros_like(t), eps=eps) for t in items)
 
                 # Case 3: iterable of iterable-of-tensors (pairs)
                 def is_pair(elem) -> bool:
-                    if not TypeCheck.iterable(elem, stop=False):
+                    if not TypeCheck.sequence(elem, stop=False):
                         return False
                     pair = list(elem)
                     if len(pair) != 2:
@@ -417,7 +417,7 @@ def smape(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[..
                     return TypeCheck.generic(a, [Tensor], stop=False) and TypeCheck.generic(b, [Tensor], stop=False)
 
                 if items and all(is_pair(p) for p in items):
-                    return sum(Losses.smape(p[0], p[1], eps=eps) for p in map(list, items))
+                    return sum(Error.smape(p[0], p[1], eps=eps) for p in map(list, items))
 
             # If nothing matched, raise a helpful error
             raise TypeError(
@@ -453,7 +453,7 @@ def mspe(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[...
 
             # Case 1: single tensor
             if TypeCheck.generic(out, [Tensor], stop=False):
-                return Losses.mspe(out, torch.zeros_like(out), eps=eps)
+                return Error.mspe(out, torch.zeros_like(out), eps=eps)
 
             # We may need to iterate more than once, so snapshot
             if isinstance(out, Iterable):
@@ -461,11 +461,11 @@ def mspe(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[...
 
                 # Case 2: iterable of tensors
                 if items and all(TypeCheck.generic(t, [Tensor], stop=False) for t in items):
-                    return sum(Losses.mspe(t, torch.zeros_like(t), eps=eps) for t in items)
+                    return sum(Error.mspe(t, torch.zeros_like(t), eps=eps) for t in items)
 
                 # Case 3: iterable of iterable-of-tensors (pairs)
                 def is_pair(elem) -> bool:
-                    if not TypeCheck.iterable(elem, stop=False):
+                    if not TypeCheck.sequence(elem, stop=False):
                         return False
                     pair = list(elem)
                     if len(pair) != 2:
@@ -474,7 +474,7 @@ def mspe(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[...
                     return TypeCheck.generic(a, [Tensor], stop=False) and TypeCheck.generic(b, [Tensor], stop=False)
 
                 if items and all(is_pair(p) for p in items):
-                    return sum(Losses.mspe(p[0], p[1], eps=eps) for p in map(list, items))
+                    return sum(Error.mspe(p[0], p[1], eps=eps) for p in map(list, items))
 
             # If nothing matched, raise a helpful error
             raise TypeError(
@@ -510,7 +510,7 @@ def smspe(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[..
 
             # Case 1: single tensor
             if TypeCheck.generic(out, [Tensor], stop=False):
-                return Losses.smspe(out, torch.zeros_like(out), eps=eps)
+                return Error.smspe(out, torch.zeros_like(out), eps=eps)
 
             # We may need to iterate more than once, so snapshot
             if isinstance(out, Iterable):
@@ -518,11 +518,11 @@ def smspe(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[..
 
                 # Case 2: iterable of tensors
                 if items and all(TypeCheck.generic(t, [Tensor], stop=False) for t in items):
-                    return sum(Losses.smspe(t, torch.zeros_like(t), eps=eps) for t in items)
+                    return sum(Error.smspe(t, torch.zeros_like(t), eps=eps) for t in items)
 
                 # Case 3: iterable of iterable-of-tensors (pairs)
                 def is_pair(elem) -> bool:
-                    if not TypeCheck.iterable(elem, stop=False):
+                    if not TypeCheck.sequence(elem, stop=False):
                         return False
                     pair = list(elem)
                     if len(pair) != 2:
@@ -531,7 +531,7 @@ def smspe(*, eps: float = 1e-6) -> Callable[[Callable[..., Output]], Callable[..
                     return TypeCheck.generic(a, [Tensor], stop=False) and TypeCheck.generic(b, [Tensor], stop=False)
 
                 if items and all(is_pair(p) for p in items):
-                    return sum(Losses.smspe(p[0], p[1], eps=eps) for p in map(list, items))
+                    return sum(Error.smspe(p[0], p[1], eps=eps) for p in map(list, items))
 
             # If nothing matched, raise a helpful error
             raise TypeError(

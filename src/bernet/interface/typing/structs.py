@@ -1,5 +1,4 @@
 #####################################################################################
-from __future__ import annotations
 from typing import NamedTuple, Optional
 
 from bernet.interface.typing.aliases import TensorData

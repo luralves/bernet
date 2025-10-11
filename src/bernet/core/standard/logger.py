@@ -1,19 +1,17 @@
 #####################################################################################
-import torch
 import os
 import json
 import math
 
-from typing import Iterable, Mapping, Any, List, Optional
+from typing import Iterable, Mapping, Any, List
 
-from bernet.contracts.logger import ILogger
-from bernet.contracts.loss import BatchLoss
+from bernet.interface.abstract.logger import ILogger
+from bernet.interface.typing.dataclass import Losses
+from bernet.interface.typing.aliases import Model, Optimizer
 
 #####################################################################################
 #-- Upload _data
-def load_training_data(
-        filename: str,
-    ) -> Mapping[str, List[float]]:
+def load_training_data(filename: str) -> Mapping[str, List[float]]:
     """
     Reads the train_data table saved by DFLTLogger.save(...) and returns
     a dictionary mapping column name -> list of float values.
@@ -73,10 +71,7 @@ class Logger(ILogger):
 
     def __init__(self) -> None:
         super().__init__()
-        
-        #-- Internal data
-        self._data = {}
-
+        self._data = {} # Store internal data
         return
     
     #-- Override
@@ -85,12 +80,8 @@ class Logger(ILogger):
         return self._data.get("train_data", None)
     
     #-- Override
-    def train_start(
-            self,
-            model: torch.nn.Module,
-            optimizer: torch.optim.Optimizer,
-        ) -> None:
-        super().train_start(model, optimizer)
+    def train_start(self, model: Model, optimizer: Optimizer) -> None:
+        super().train_start()
 
         # Model info
         self._data['model_class'] = model.__class__.__name__
@@ -107,12 +98,8 @@ class Logger(ILogger):
         return
     
     #-- Override
-    def epoch_end(
-            self,
-            losses: BatchLoss,
-            tests: Mapping[str, float],
-        ) -> None:
-        super().epoch_end(losses, tests)
+    def epoch_end(self, losses: Losses, tests: Mapping[str, float]) -> None:
+        super().epoch_end()
 
         #-- Create trianing _data
         if not ("train_data" in self._data):
@@ -124,11 +111,11 @@ class Logger(ILogger):
         
         #-- Add _data
         self._data["train_data"]["iteration"].append(len(self._data["train_data"]["iteration"]) + 1)
-        self._data["train_data"]["loss"].append(losses.sum())
-        self._data["train_data"]["residual"].append(losses.residual)
-        self._data["train_data"]["boundary"].append(losses.boundary)
-        self._data["train_data"]["initial"].append(losses.initial)
-        self._data["train_data"]["observational"].append(losses.observational)
+        self._data["train_data"]["loss"].append(losses.sum().item())
+        self._data["train_data"]["residual"].append(losses.residual.item())
+        self._data["train_data"]["boundary"].append(losses.boundary.item())
+        self._data["train_data"]["initial"].append(losses.initial.item())
+        self._data["train_data"]["observational"].append(losses.observational.item())
 
         if tests:
             for k, v in tests.items():
@@ -137,16 +124,14 @@ class Logger(ILogger):
         return
     
     #-- Override
-    def exception(self, e) -> None:
-        super().exception(e)
-        #-- Add exception
+    def exception(self, e: Exception) -> None:
+        super().exception()
         self._data["exception"] = str(e)
         return
     
     #-- Override
     def training_end(self, stopped: bool) -> None:
-        super().training_end(stopped)
-        #-- Add training end
+        super().training_end()
         self._data["stopped"] = stopped
         return
     

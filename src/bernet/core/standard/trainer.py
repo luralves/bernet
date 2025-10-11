@@ -3,13 +3,15 @@ import torch
 
 from typing import List, Literal, Optional, get_args
 
-from bernet.contracts.metrics import IMetrics
-from bernet.contracts.sampler import ISampler
-from bernet.contracts.loss import ILoss, BatchLoss
-from bernet.contracts.callbacks import ICallbacks
-from bernet.contracts.early_stop import IEarlyStop
-from bernet.contracts.logger import ILogger
-from bernet.contracts.trainer import ITrainer
+from bernet.interface.abstract.metrics import IMetrics
+from bernet.interface.abstract.sampler import ISampler
+from bernet.interface.abstract.loss import ILoss
+from bernet.interface.abstract.callbacks import ICallbacks
+from bernet.interface.abstract.early_stop import IEarlyStop
+from bernet.interface.abstract.logger import ILogger
+from bernet.interface.abstract.trainer import ITrainer
+from bernet.interface.typing.dataclass import Losses
+from bernet.interface.typing.aliases import Model, Optimizer
 
 from bernet.core.metrics import MSE, MAE, MSPE, MAPE
 
@@ -17,6 +19,7 @@ from bernet.utils.validation import TypeCheck, ValueCheck
 from bernet.utils.processing import Initialization
 
 #####################################################################################
+#--
 Metrics = Literal[
     "mse",
     "mae",
@@ -32,14 +35,15 @@ Weights = Literal[
     "orthogonal",
 ]
 
+#--
 class Trainer(ITrainer):
     
     def __init__(
             self,
-            model: torch.nn.Module,
+            model: Model,
             sampler: ISampler,
             loss: ILoss,
-            optimizer: torch.optim.Optimizer,
+            optimizer: Optimizer,
             *,
             metrics: Optional[List[Metrics]] = None,
             callbacks: Optional[ICallbacks] = None,
@@ -73,12 +77,12 @@ class Trainer(ITrainer):
         super().__init__(model, sampler, loss, optimizer)
 
         #-- Verification
-        TypeCheck.iterable_none(metrics)
-        TypeCheck.abc_none(callbacks, ICallbacks)
-        TypeCheck.abc_none(early_stop, IEarlyStop)
-        TypeCheck.iterable_none(initialization)
-        TypeCheck.abc_none(logger, ILogger)
-        TypeCheck.str_none(device)
+        TypeCheck.sequence(metrics, include_none=True)
+        TypeCheck.generic(callbacks, [ICallbacks], include_none=True)
+        TypeCheck.generic(early_stop, [IEarlyStop], include_none=True)
+        TypeCheck.sequence(initialization, include_none=True)
+        TypeCheck.generic(logger, [ILogger], include_none=True)
+        TypeCheck.str(device, include_none=True)
 
         if metrics is not None:
             for metric in metrics:
@@ -88,44 +92,60 @@ class Trainer(ITrainer):
             ValueCheck.on_iterable(initialization, get_args(Weights))
         
         #-- Inputs
-        self._callbacks = callbacks
-        self._early_stop = early_stop
-        self._logger = logger
+        self.callbacks = callbacks
+        self.early_stop = early_stop
+        self.logger = logger
 
         #-- Auxiliary parameters
-        self._metrics: List[IMetrics] | None = [] if metrics is not None else None
-        self._device: torch.device = None
+        self.metrics: List[IMetrics] | None = [] if metrics is not None else None
+        self.device: torch.device = None
 
         #-- Select metrics
         if metrics is not None:
             for v in metrics:
-                if v == "mse": self._metrics.append(MSE())
-                if v == "mae": self._metrics.append(MAE())
-                if v == "mspe": self._metrics.append(MSPE())
-                if v == "mape": self._metrics.append(MAPE())
+                if v == "mse":
+                    self.metrics.append(MSE())
+
+                if v == "mae":
+                    self.metrics.append(MAE())
+
+                if v == "mspe":
+                    self.metrics.append(MSPE())
+
+                if v == "mape":
+                    self.metrics.append(MAPE())
 
 
         #-- Select device
         if device == "auto":
             if torch.cuda.is_available():
-                self._device =  torch.device("cuda")
+                self.device =  torch.device("cuda")
             elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
-                self._device =  torch.device("mps")
+                self.device =  torch.device("mps")
             else:
-                self._device =  torch.device("cpu")
+                self.device =  torch.device("cpu")
         else:
-            self._device = torch.device(device) if isinstance(device, str) else device
+            self.device = torch.device(device) if isinstance(device, str) else device
 
         #-- Initialize model weights
         if initialization:
-            if initialization == "xavier_uniform": model.apply(Initialization.xavier_uniform)
-            if initialization == "xavier_normal": model.apply(Initialization.xavier_normal)
-            if initialization == "kaiming_uniform": model.apply(Initialization.kaiming_uniform)
-            if initialization == "kaiming_normal": model.apply(Initialization.kaiming_normal)
-            if initialization == "orthogonal": model.apply(Initialization.orthogonal)
+            if initialization == "xavier_uniform":
+                model.apply(Initialization.xavier_uniform)
+
+            if initialization == "xavier_normal":
+                model.apply(Initialization.xavier_normal)
+
+            if initialization == "kaiming_uniform":
+                model.apply(Initialization.kaiming_uniform)
+
+            if initialization == "kaiming_normal":
+                model.apply(Initialization.kaiming_normal)
+
+            if initialization == "orthogonal":
+                model.apply(Initialization.orthogonal)
         
         #-- Move model to device
-        self._model.to(self._device)
+        self.model.to(self.device)
         
         return
 
@@ -138,12 +158,12 @@ class Trainer(ITrainer):
         ) -> None:
         
         #-- Callback
-        if self._callbacks:
-            self._callbacks.train_start()
+        if self.callbacks:
+            self.callbacks.train_start()
 
         #-- Log start
-        if self._logger is not None:
-            self._logger.train_start(model=self._model, optimizer=self._optimizer)
+        if self.logger is not None:
+            self.logger.train_start(model=self.model, optimizer=self.optimizer)
         
         try:
 
@@ -151,33 +171,35 @@ class Trainer(ITrainer):
             for epoch in range(num_epochs):
 
                 #-- Callback
-                if self._callbacks:
-                    self._callbacks.epoch_start()
+                if self.callbacks:
+                    self.callbacks.epoch_start()
                 
                 #-- Create batches
-                num_batches = self._sampler.generate()
+                num_batches = self.sampler.generate(self.device)
 
                 #-- Reset epoch loss
-                terms_epoch = BatchLoss(.0, .0, .0, .0)
+                terms_epoch = Losses(
+                    residual=torch.tensor(0.0),
+                    boundary=torch.tensor(0.0),
+                    initial=torch.tensor(0.0),
+                    observational=torch.tensor(0.0),
+                )
 
                 #-- Loop through batches
                 for index in range(num_batches):
 
                     #-- Callback
-                    if self._callbacks:
-                        self._callbacks.batch_start()
+                    if self.callbacks:
+                        self.callbacks.batch_start()
 
                     #-- Sample batch
-                    batch = self._sampler.batch(index)
-                    
-                    #-- Move batch tensors to device
-                    batch.to_device(self._device)
-                    
+                    batch = self.sampler.batch(index)
+
                     #-- Zero gradients
-                    self._optimizer.zero_grad(set_to_none=True)
+                    self.optimizer.zero_grad(set_to_none=True)
 
                     #-- Compute loss
-                    terms = self._loss.compute(model=self._model, batch=batch)
+                    terms = self.loss.compute(model=self.model, batch=batch)
 
                     #-- Compute total loss
                     loss = terms.sum()
@@ -186,21 +208,21 @@ class Trainer(ITrainer):
                     loss.backward()
 
                     #-- Adjust learning weights
-                    self._optimizer.step()
+                    self.optimizer.step()
 
                     #-- Sum to epoch loss
-                    terms_epoch += terms.to_float()
+                    terms_epoch = terms_epoch + terms
 
                     #-- Callback
-                    if self._callbacks:
-                        self._callbacks.batch_end()
+                    if self.callbacks:
+                        self.callbacks.batch_end()
                     
                 #-- Compute metrics
-                if self._metrics is not None:
-                    t_sample = self._sampler.test()
+                if self.metrics is not None:
+                    t_sample = self.sampler.test()
                     tests = {}
-                    for metric in self._metrics:
-                        for k, v in metric.evaluate(model=self._model, data=t_sample).items():
+                    for metric in self.metrics:
+                        for k, v in metric.evaluate(model=self.model, data=t_sample).items():
                             tests[k] = v.item()
                 else:
                     tests = None
@@ -209,19 +231,19 @@ class Trainer(ITrainer):
                 avg_terms = terms_epoch / num_batches
 
                 #-- Log epoch
-                if self._logger is not None:
-                    self._logger.epoch_end(losses=avg_terms, tests=tests)
+                if self.logger is not None:
+                    self.logger.epoch_end(losses=avg_terms, tests=tests)
 
                 #-- Early stopping
-                if self._early_stop:
+                if self.early_stop:
 
                     #-- Compute stopping criteria
-                    stop = self._early_stop.evaluate(losses=avg_terms, tests=tests)
+                    stop = self.early_stop.evaluate(losses=avg_terms, tests=tests)
                     
                     #-- Stop if criteria met
                     if stop:
-                        if self._logger is not None:
-                            self._logger.training_end(stopped=True)
+                        if self.logger is not None:
+                            self.logger.training_end(stopped=True)
                         break
                 
                 #-- Show progress
@@ -244,32 +266,32 @@ class Trainer(ITrainer):
                         )
                 
                 #-- Callback
-                if self._callbacks:
-                    self._callbacks.epoch_end()
+                if self.callbacks:
+                    self.callbacks.epoch_end()
 
-        except Exception as e:
-            #-- Callback
-            if self._callbacks:
-                self._callbacks.exception(e)
+        # except Exception as e:
+        #     #-- Callback
+        #     if self.callbacks:
+        #         self.callbacks.exception(e)
 
-            #-- Log exception
-            if self._logger is not None:
-                self._logger.exception(e)
+        #     #-- Log exception
+        #     if self.logger is not None:
+        #         self.logger.exception(e)
 
-            #-- Show error
-            if verbose:
-                print(e)
+        #     #-- Show error
+        #     if verbose:
+        #         print(e)
 
         finally:
             #-- Callback
-            if self._callbacks:
-                self._callbacks.train_end()
+            if self.callbacks:
+                self.callbacks.train_end()
 
             #-- Log close
-            if self._logger is not None:
-                self._logger.training_end(stopped=False)
+            if self.logger is not None:
+                self.logger.training_end(stopped=False)
         
-        return None if self._logger is None else self._logger.data
+        return None if self.logger is None else self.logger.data
 
     def save(self, filename: str) -> None:
         """
@@ -285,6 +307,8 @@ class Trainer(ITrainer):
         TypeCheck.str(filename)
 
         #-- Save
-        self._logger.save(filename)
+        self.logger.save(filename)
 
         return
+
+#####################################################################################

@@ -34,10 +34,10 @@ class ITrainer(ABC):
         super().__init__()
 
         #-- Validation
-        TypeCheck.abc(model, Model)
-        TypeCheck.abc(sampler, ISampler)
-        TypeCheck.abc(loss, ILoss)
-        TypeCheck.abc(optimizer, Optimizer)
+        TypeCheck.generic(model, [Model])
+        TypeCheck.generic(sampler, [ISampler])
+        TypeCheck.generic(loss, [ILoss])
+        TypeCheck.generic(optimizer, [Optimizer])
 
         #-- Inputs
         self.model = model

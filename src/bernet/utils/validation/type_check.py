@@ -1,6 +1,6 @@
 #####################################################################################
 from typing import Any, Optional
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 
 #####################################################################################
 #-- Helper function
@@ -61,10 +61,10 @@ class TypeCheck():
         )
     
     @staticmethod
-    def iterable(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> bool:
+    def sequence(value: Any, message: Optional[str] = None, stop: bool = True, include_none: bool = False) -> bool:
         return _validation(
             value=value,
-            target=[Iterable, type(None)] if include_none else [Iterable],
+            target=[Sequence, type(None)] if include_none else [Sequence],
             message=message if message is not None else f"{value} must be an Iterable",
             stop=stop,
         )

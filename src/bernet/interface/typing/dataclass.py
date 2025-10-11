@@ -21,7 +21,7 @@ class Losses:
     #-- Override
     def __add__(self, other: Losses) -> Losses:
         """Losses can only be added to other losses"""
-        TypeCheck.abc(other, Losses)
+        TypeCheck.generic(other, [Losses])
         return Losses(
             residual=self.residual + other.residual,
             boundary=self.boundary + other.boundary,

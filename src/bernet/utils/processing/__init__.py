@@ -1,8 +1,8 @@
 from bernet.utils.processing.initialization import Initialization
-from bernet.utils.processing.losses import Losses
+from bernet.utils.processing.error import Error
 
 #-- Decorators
-from bernet.utils.processing.losses import (
+from bernet.utils.processing.error import (
     mse,
     mae,
     mspe,
