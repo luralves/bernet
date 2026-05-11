@@ -25,7 +25,7 @@ repository = "https://github.com/luralves/bernet"
 issues = "https://github.com/luralves/bernet/issues"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["."]

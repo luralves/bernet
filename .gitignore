@@ -6,3 +6,6 @@ __pycache__/
 # Ignore build/packaging artifacts
 *.egg-info/
 *.egg
+
+# Ignore dev folder
+./dev

@@ -1,1 +1,0 @@
-from bernet.utils.statistics.lattin_hypercube_sampling import lhs_1, lhs_d

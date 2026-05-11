@@ -1,1 +1,0 @@
-from bernet.core.sampler.square import Square
