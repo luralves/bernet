@@ -1,11 +1,15 @@
-# Ignore Python cache
+# Virtual env
+venv/
+.venv/
+env/
+
+# Python file and folders
 __pycache__/
 *.pyc
+*.egg-info/
+
+# Tests
 .pytest_cache/
 
-# Ignore build/packaging artifacts
-*.egg-info/
-*.egg
-
-# Ignore dev folder
-./dev
+# Development
+dev/
